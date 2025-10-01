@@ -1,0 +1,45 @@
+{
+  "role": {
+    "titles": ["Senior Technical Recruiter"],
+    "level": "Senior",
+    "industries": ["saas", "web3", "robotics"],
+    "jd_skills_blob": "5+ years recruiting for software/infra roles; end-to-end ownership (reqs -> offers). Sourcing at scale, structured interviews, hiring manager partnership. Experience in at least one of SaaS, Web3, or Robotics. University programs, internship pipelines, ATS (Greenhouse), compensation calibration.",
+    "min_avg_months": 18,
+    "min_last_months": 12
+  },
+  "candidate": {
+    "name": "Jordan Example",
+    "titles_norm": [
+      ["recruiter", 2],
+      ["people_ops", 2]
+    ],
+    "stints": [
+      {
+        "title": "Senior Technical Recruiter",
+        "industry_tags": ["saas"],
+        "start": {
+          "year": 2022,
+          "month": 6,
+          "day": 1
+        },
+        "end": null
+      },
+      {
+        "title": "Technical Recruiter",
+        "industry_tags": ["fintech"],
+        "start": {
+          "year": 2020,
+          "month": 1,
+          "day": 1
+        },
+        "end": {
+          "year": 2022,
+          "month": 5,
+          "day": 1
+        }
+      }
+    ],
+    "skills_blob": "Sourcing SWE/Infra, Greenhouse, structured interviews, comp bands, close offers",
+    "relevant_bullets_blob": "- Owned 20+ SWE reqs; built pipelines; ran hiring loops; calibrated offers with finance."
+  }
+}
