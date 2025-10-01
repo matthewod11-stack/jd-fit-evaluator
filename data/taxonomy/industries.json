@@ -1,52 +1,158 @@
 {
-  "saas": [
-    "subscription",
-    "cloud",
-    "b2b",
-    "software-as-a-service",
-    "salesforce",
-    "aws"
-  ],
   "web3": [
+    "web3",
     "blockchain",
     "crypto",
-    "defi",
+    "on-chain",
+    "onchain",
     "smart contract",
-    "l1",
-    "layer 1",
-    "token"
+    "dapp",
+    "wallet",
+    "protocol"
   ],
-  "robotics": [
-    "robot",
-    "automation",
-    "autonomous",
-    "mechatronics",
-    "ros",
-    "slam"
+  "defi": [
+    "defi",
+    "yield",
+    "liquidity pool",
+    "amm",
+    "staking",
+    "vault",
+    "leverage",
+    "perpetuals",
+    "lp",
+    "dex",
+    "lending",
+    "borrowing",
+    "cdp",
+    "stablecoin"
+  ],
+  "crypto": [
+    "crypto",
+    "cryptocurrency",
+    "token",
+    "ico",
+    "airdrop"
   ],
   "fintech": [
-    "payments",
     "fintech",
+    "payments",
     "banking",
     "lending",
-    "underwriting",
     "kyc",
-    "aml"
+    "aml",
+    "compliance"
+  ],
+  "saas": [
+    "saas",
+    "subscription",
+    "b2b",
+    "multi-tenant",
+    "cloud",
+    "web app"
   ],
   "ai": [
-    "machine learning",
-    "ml",
     "ai",
+    "ml",
+    "machine learning",
     "llm",
-    "transformer",
-    "vision",
-    "nlp"
+    "prompt",
+    "inference",
+    "fine-tune"
   ],
-  "hardware": [
-    "semiconductor",
-    "chip",
-    "fpga",
-    "gpu",
-    "asic"
+  "orchestration": [
+    "orchestration",
+    "compose",
+    "automation",
+    "workflow engine",
+    "multi-protocol",
+    "single signature"
+  ],
+  "wallets": [
+    "wallet",
+    "metamask",
+    "phantom",
+    "ledger",
+    "trezor",
+    "seed phrase",
+    "private key",
+    "signing",
+    "transaction"
+  ],
+  "smart_contracts": [
+    "smart contract",
+    "solidity",
+    "cosmos",
+    "cosmwasm",
+    "rust",
+    "evm",
+    "contract",
+    "abi"
+  ],
+  "protocols": [
+    "protocol",
+    "uniswap",
+    "aave",
+    "compound",
+    "balancer",
+    "makerdao",
+    "curve",
+    "lido",
+    "sushiswap"
+  ],
+  "dex": [
+    "dex",
+    "amm",
+    "swap",
+    "liquidity",
+    "pool",
+    "lp"
+  ],
+  "l2": [
+    "rollup",
+    "optimistic",
+    "zk",
+    "arbitrum",
+    "optimism",
+    "base",
+    "polygon"
+  ],
+  "bridges": [
+    "bridge",
+    "cross-chain",
+    "interoperability",
+    "ibc"
+  ],
+  "yield": [
+    "apr",
+    "apy",
+    "yield",
+    "vault",
+    "strategy",
+    "optimizer"
+  ],
+  "staking": [
+    "stake",
+    "staking",
+    "liquid staking",
+    "validator",
+    "delegation"
+  ],
+  "usability": [
+    "usability",
+    "usability testing",
+    "user testing",
+    "research",
+    "interview",
+    "study"
+  ],
+  "product_design": [
+    "product design",
+    "ux",
+    "ui",
+    "interaction",
+    "wireframe",
+    "prototype",
+    "figma",
+    "design system"
   ]
 }

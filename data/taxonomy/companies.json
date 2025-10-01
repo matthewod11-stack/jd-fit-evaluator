@@ -1,44 +1,236 @@
 {
-  "Google": [
-    "saas"
+  "Agoric": [
+    "web3",
+    "defi",
+    "orchestration"
   ],
-  "Microsoft": [
-    "saas"
+  "Uniswap Labs": [
+    "defi",
+    "dex"
   ],
-  "OpenAI": [
-    "saas",
-    "ai"
+  "Aave": [
+    "defi",
+    "lending"
   ],
-  "Anthropic": [
-    "ai",
-    "saas"
+  "MakerDAO": [
+    "defi",
+    "lending",
+    "stablecoins"
+  ],
+  "Curve": [
+    "defi",
+    "dex",
+    "yield"
+  ],
+  "Lido": [
+    "defi",
+    "staking",
+    "yield"
+  ],
+  "SushiSwap": [
+    "defi",
+    "dex"
+  ],
+  "Balancer": [
+    "defi",
+    "dex"
+  ],
+  "Compound": [
+    "defi",
+    "lending"
+  ],
+  "dYdX": [
+    "defi",
+    "dex",
+    "perpetuals"
+  ],
+  "GMX": [
+    "defi",
+    "perpetuals",
+    "dex"
+  ],
+  "Yearn Finance": [
+    "defi",
+    "yield"
+  ],
+  "Synthetix": [
+    "defi",
+    "derivatives"
+  ],
+  "PancakeSwap": [
+    "defi",
+    "dex"
+  ],
+  "Thorchain": [
+    "defi",
+    "cross-chain",
+    "dex"
+  ],
+  "1inch": [
+    "defi",
+    "dex",
+    "aggregator"
+  ],
+  "Zapper": [
+    "defi",
+    "dashboard"
+  ],
+  "Zerion": [
+    "defi",
+    "wallet",
+    "dashboard"
+  ],
+  "Opyn": [
+    "defi",
+    "options"
+  ],
+  "Ribbon Finance": [
+    "defi",
+    "options",
+    "yield"
+  ],
+  "Rari Capital": [
+    "defi",
+    "yield"
+  ],
+  "Anchor Protocol": [
+    "defi",
+    "lending",
+    "terra"
+  ],
+  "Venus": [
+    "defi",
+    "lending"
+  ],
+  "Orca": [
+    "defi",
+    "dex",
+    "solana"
+  ],
+  "Raydium": [
+    "defi",
+    "dex",
+    "solana"
+  ],
+  "Serum": [
+    "defi",
+    "dex",
+    "solana"
+  ],
+  "Marinade Finance": [
+    "defi",
+    "staking",
+    "solana"
+  ],
+  "Phantom": [
+    "web3",
+    "wallets",
+    "solana"
+  ],
+  "Ledger": [
+    "web3",
+    "wallets",
+    "hardware"
+  ],
+  "Trezor": [
+    "web3",
+    "wallets",
+    "hardware"
   ],
   "Coinbase": [
     "web3",
+    "crypto",
+    "exchange",
     "fintech"
   ],
-  "Agoric": [
-    "web3"
+  "Binance": [
+    "web3",
+    "crypto",
+    "exchange"
   ],
-  "Vecna Robotics": [
-    "robotics"
+  "Kraken": [
+    "web3",
+    "crypto",
+    "exchange"
   ],
-  "Boston Dynamics": [
-    "robotics"
+  "OKX": [
+    "web3",
+    "crypto",
+    "exchange"
   ],
-  "Stripe": [
-    "fintech",
-    "saas"
+  "Huobi": [
+    "web3",
+    "crypto",
+    "exchange"
   ],
-  "Square": [
-    "fintech",
-    "saas"
+  "Polygon Labs": [
+    "web3",
+    "l2",
+    "scaling"
   ],
-  "Meta": [
-    "saas"
+  "Arbitrum": [
+    "web3",
+    "l2",
+    "scaling"
   ],
-  "Nvidia": [
-    "hardware",
-    "ai"
+  "Optimism": [
+    "web3",
+    "l2",
+    "scaling"
+  ],
+  "Base": [
+    "web3",
+    "l2",
+    "scaling",
+    "coinbase"
+  ],
+  "Ethereum Foundation": [
+    "web3",
+    "l1",
+    "smart_contracts"
+  ],
+  "Solana Labs": [
+    "web3",
+    "l1"
+  ],
+  "Near Protocol": [
+    "web3",
+    "l1"
+  ],
+  "Avalanche": [
+    "web3",
+    "l1"
+  ],
+  "Cosmos": [
+    "web3",
+    "l1",
+    "interoperability"
+  ],
+  "Polkadot": [
+    "web3",
+    "l1",
+    "interoperability"
+  ],
+  "Algorand": [
+    "web3",
+    "l1"
+  ],
+  "Cardano": [
+    "web3",
+    "l1"
+  ],
+  "Tezos": [
+    "web3",
+    "l1"
+  ],
+  "StarkWare": [
+    "web3",
+    "l2",
+    "zk"
+  ],
+  "zkSync": [
+    "web3",
+    "l2",
+    "zk"
   ]
 }

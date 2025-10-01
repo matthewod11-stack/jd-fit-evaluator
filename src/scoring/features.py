@@ -1,15 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import date
 from .weights import DEFAULT_WEIGHTS
 from ..models.embeddings import embed, cos
 
-def months_between(start, end):
-    return (end.year - start.year)*12 + (end.month - start.month)
+def _safe_months_between(a: Optional[date], b: Optional[date]) -> int:
+    if not (isinstance(a, date) and isinstance(b, date)):
+        return 0
+    return (b.year - a.year) * 12 + (b.month - a.month)
 
 def tenure_scores(stints, min_avg=18, min_last=12):
-    months = [months_between(s["start"], s.get("end", date.today())) for s in stints]
+    months = [_safe_months_between(s.get("start_date"), s.get("end_date")) for s in stints]
     if not months:
         return 0.0, 0.0, 0.0
     avg = sum(months)/len(months)
@@ -21,7 +23,7 @@ def tenure_scores(stints, min_avg=18, min_last=12):
 def industry_score(stints, target_tags):
     rel_months = 0; total = 0
     for s in stints:
-        m = months_between(s["start"], s.get("end", date.today()))
+        m = _safe_months_between(s.get("start_date"), s.get("end_date"))
         total += m
         if any(tag in s.get("industry_tags", []) for tag in target_tags):
             rel_months += m
@@ -57,8 +59,8 @@ def recency_score(stints, horizon_months=36):
     if not stints: return 0.0
     from datetime import date
     # assume stints sorted desc; if current ongoing, recency = 1.0
-    if stints[0].get("end") is None: return 1.0
-    months = months_between(stints[0]["end"], date.today())
+    if stints[0].get("end_date") is None: return 1.0
+    months = _safe_months_between(stints[0]["end_date"], date.today())
     if months <= horizon_months: return 1.0 - (months / (horizon_months*1.2))
     return 0.2
 

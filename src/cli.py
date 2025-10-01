@@ -55,7 +55,7 @@ def score(jd: str = typer.Option(..., help="Path to JD text file"),
 
 @app.command()
 def ingest(job_id: Optional[str] = typer.Option(None, help="Override GH_JOB_ID from .env"),
-           out_dir: str = typer.Option("data/ingest", help="Output dir for normalized candidate JSON")):
+           out_dir: str = typer.Option(default="data/ingest", help="Output dir for normalized candidate JSON")):
     jid = job_id or settings.gh_job_id
     if not (settings.gh_token and jid):
         typer.echo("Error: GH_TOKEN and GH_JOB_ID must be set (either via .env or --job-id).")
@@ -63,19 +63,18 @@ def ingest(job_id: Optional[str] = typer.Option(None, help="Override GH_JOB_ID f
     files = ingest_job(jid, out_dir=out_dir)
     typer.echo(f"Ingested {len(files)} candidates → {out_dir}")
 
+# @app.command()
+# def train(jd: str = typer.Option(default="data/sample/jd.txt", help="JD used to compute sub-scores before training (optional)"),
+#           labels: str = typer.Option(default="data/labels.csv", help="CSV with name,label rows (1=advance/hire,0=reject)"),
+#           scores: str = typer.Option(default="data/out/scores.json", help="Features source produced by `score`"),
+#           out: str = typer.Option(default="models/trained/model.pkl", help="Output pickle path")):
+#     # Ensure features exist; if not, run score first (sample or ingested)
+#     if not Path(scores).exists():
+#         typer.echo("Features file not found; run `make score` (or score --sample) first to build data/out/scores.json.")
+#         raise typer.Exit(1)
+#     from .training.train import train as _train
+#     out_path, meta = _train(scores, labels, out)
+#     typer.echo(f"Trained model → {out_path}  (n={meta['n']}, positive rate={meta['pos_rate']:.2f})")
+
 if __name__ == '__main__':
     app()
-
-
-@app.command()
-def train(jd: str = typer.Option("data/sample/jd.txt", help="JD used to compute sub-scores before training (optional)"),
-          labels: str = typer.Option("data/labels.csv", help="CSV with name,label rows (1=advance/hire,0=reject)"),
-          scores: str = typer.Option("data/out/scores.json", help="Features source produced by `score`"),
-          out: str = typer.Option("models/trained/model.pkl", help="Output pickle path")):
-    # Ensure features exist; if not, run score first (sample or ingested)
-    if not Path(scores).exists():
-        typer.echo("Features file not found; run `make score` (or score --sample) first to build data/out/scores.json.")
-        raise typer.Exit(1)
-    from .training.train import train as _train
-    out_path, meta = _train(scores, labels, out)
-    typer.echo(f"Trained model → {out_path}  (n={meta['n']}, positive rate={meta['pos_rate']:.2f})")
