@@ -1,8 +1,13 @@
 
 import streamlit as st, json
+import sys
 from pathlib import Path
 from typing import Dict, Any
-from ..src.scoring.finalize import compute_fit
+import csv
+
+# Add the project root to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from src.scoring.finalize import compute_fit
 
 st.set_page_config(page_title="JD Fit Evaluator", layout="wide")
 st.title("JD-anchored Candidate Evaluator")
@@ -111,6 +116,17 @@ for r in st.session_state['results']:
     st.json(r['subs'])
 
 if save and st.session_state['results']:
-    out = Path("data/out"); out.mkdir(parents=True, exist_ok=True)
-    Path(out/"ui_scores.json").write_text(json.dumps(st.session_state['results'], indent=2))
-    st.success(f"Saved to {out/'ui_scores.json'}")
+    outdir = Path("data/out"); outdir.mkdir(parents=True, exist_ok=True)
+    (outdir/"scores.json").write_text(json.dumps(st.session_state['results'], indent=2))
+    with (outdir/"scores.csv").open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["candidate_id","name","fit_score","titles_norm","industry_tags"])
+        w.writeheader()
+        for row in st.session_state['results']:
+            w.writerow({
+                "candidate_id": row.get("candidate_id"),
+                "name": row.get("name"),
+                "fit_score": row.get("fit_score"),
+                "titles_norm": ";".join(row.get("titles_norm", [])),
+                "industry_tags": ";".join(row.get("industry_tags", [])),
+            })
+    st.success("Saved JSON + CSV.")

@@ -1,0 +1,45 @@
+[
+  {
+    "candidate": "John Doe",
+    "fit": 0.85,
+    "candidate_id": "123",
+    "name": "John Doe",
+    "fit_score": 0.85,
+    "titles_norm": [
+      "software engineer",
+      "developer"
+    ],
+    "industry_tags": [
+      "technology",
+      "fintech"
+    ],
+    "subs": {
+      "title": 0.9,
+      "industry": 0.8
+    },
+    "why": [
+      "Strong technical background",
+      "Relevant industry experience"
+    ]
+  },
+  {
+    "candidate": "Jane Smith",
+    "fit": 0.72,
+    "candidate_id": "456",
+    "name": "Jane Smith",
+    "fit_score": 0.72,
+    "titles_norm": [
+      "product manager"
+    ],
+    "industry_tags": [
+      "healthcare"
+    ],
+    "subs": {
+      "title": 0.7,
+      "industry": 0.6
+    },
+    "why": [
+      "Good product experience"
+    ]
+  }
+]
