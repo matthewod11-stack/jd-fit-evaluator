@@ -1,13 +1,39 @@
 from __future__ import annotations
 from typing import Dict, Any
+
+import numpy as np
+
 from .features import (
     title_match_score, industry_score, tenure_scores, recency_score,
     context_penalty, skill_sem_sim
 )
 from .weights import DEFAULT_WEIGHTS
+from ..models.embeddings import get_embedder
 
 def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dict:
     W = (weights or DEFAULT_WEIGHTS).copy()
+
+    embedder = get_embedder()
+    _embed_cache: dict[str, np.ndarray] = {}
+
+    def _embed(text: str) -> np.ndarray:
+        key = text or ""
+        cached = _embed_cache.get(key)
+        if cached is not None:
+            return cached
+
+        vector = embedder.embed_text(key)
+        array = np.asarray(vector, dtype=np.float64)
+        if array.ndim == 1:
+            result = array
+        elif array.ndim == 2 and 1 in array.shape:
+            result = array.reshape(-1)
+        else:
+            raise ValueError(f"Expected 1-D embedding vector, got shape {array.shape}")
+
+        result = np.array(result, dtype=np.float64, copy=True)
+        _embed_cache[key] = result
+        return result
 
     titles = candidate.get("titles_norm", [])  # [(role, level)]
     tscore = title_match_score(titles, role.get("titles", []), role.get("level"))
@@ -16,9 +42,9 @@ def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dic
 
     jd_blob = role.get("jd_skills_blob", "")
     cand_blob = (candidate.get("skills_blob", "") + "\n" + candidate.get("relevant_bullets_blob", "")).strip()
-    sscore = skill_sem_sim(jd_blob, cand_blob)
+    sscore = skill_sem_sim(jd_blob, cand_blob, _embed)
 
-    cpen = context_penalty(candidate.get("relevant_bullets_blob", ""))
+    cpen = context_penalty(candidate.get("relevant_bullets_blob", ""), _embed)
     cscore = max(0.0, 1.0 - cpen)
 
     avg, last, ten = tenure_scores(candidate.get("stints", []),
