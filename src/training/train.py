@@ -2,6 +2,7 @@
 import json, pickle
 from pathlib import Path
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 
 FEATURE_KEYS = ["title","industry","skills","context","tenure","recency","bonus"]
@@ -38,8 +39,32 @@ def load_features(scores_path: str, labels_path: str):
     X = np.vstack(X); y = np.array(y, dtype="int64")
     return X, y, names
 
-def train(scores_path: str = "data/out/scores.json", labels_path: str = "data/labels.csv", out_path: str = "models/trained/model.pkl"):
-    X, y, names = load_features(scores_path, labels_path)
+def train(scores_path: str = "data/out/scores.json", labels_csv: str = "data/labels.csv", out_path: str = "models/trained/model.pkl"):
+    scores = pd.read_json(scores_path)
+    labels = pd.read_csv(labels_csv)
+    if "candidate_id" not in scores.columns or "candidate_id" not in labels.columns:
+        raise SystemExit("labels and scores must contain candidate_id")
+    df = scores.merge(labels[["candidate_id","label"]], on="candidate_id", how="inner")
+    
+    # Build X from the merged dataframe
+    X, y, names = [], [], []
+    for _, row in df.iterrows():
+        # Extract features using FEATURE_KEYS
+        subs = {k: row.get(k, None) for k in FEATURE_KEYS}
+        # fallback if subs nested in a 'subs' column
+        if subs["title"] is None and "subs" in row:
+            subs = row["subs"] if isinstance(row["subs"], dict) else {}
+        x = [float(subs.get(k, 0.0) or 0.0) for k in FEATURE_KEYS]
+        X.append(np.array(x, dtype="float32"))
+        y.append(int(row["label"]))
+        names.append(row.get("candidate_id", ""))
+    
+    if not X:
+        raise ValueError("No overlapping candidates between features and labels.")
+    
+    X = np.vstack(X)
+    y = np.array(y, dtype="int64")
+    
     clf = LogisticRegression(max_iter=2000, class_weight="balanced")
     clf.fit(X, y)
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
