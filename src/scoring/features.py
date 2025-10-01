@@ -2,11 +2,129 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, List, Dict, Any, Optional
 from datetime import date
+import string
+from difflib import SequenceMatcher
 
 import numpy as np
 
 from .weights import DEFAULT_WEIGHTS
 from ..models.embeddings import _cosine as cosine
+
+# PR-003: Title matching improvements
+
+_TITLE_PUNCT_TRANS = str.maketrans({c: " " for c in string.punctuation})
+_SENIOR_ALIASES = {"sr", "snr", "senior"}
+_LEVEL_RANK = {
+    "intern": 0,
+    "junior": 1,
+    "associate": 1,
+    "mid": 2,
+    "senior": 3,
+    "lead": 4,
+    "staff": 4,
+    "principal": 5,
+}
+
+
+def normalize_title(s: str) -> str:
+    """Return lowercase, de-punctuated titles with senior variants unified."""
+    if not s:
+        return ""
+
+    lowered = s.lower().translate(_TITLE_PUNCT_TRANS)
+    tokens = lowered.split()
+    if not tokens:
+        return ""
+
+    normalized_tokens = ["senior" if token in _SENIOR_ALIASES else token for token in tokens]
+    return " ".join(normalized_tokens)
+
+
+def _split_level_tokens(tokens: list[str]) -> tuple[list[str], int | None]:
+    """Separate level-bearing tokens and return remaining tokens plus highest level."""
+    core: list[str] = []
+    level: int | None = None
+    for token in tokens:
+        rank = _LEVEL_RANK.get(token)
+        if rank is None:
+            core.append(token)
+            continue
+        if level is None or rank > level:
+            level = rank
+    return core, level
+
+
+def _level_alignment_score(role_level: int | None, cand_level: int | None) -> float:
+    """Return soft match score for level differences."""
+    if role_level is None or cand_level is None:
+        return 1.0
+
+    gap = abs(role_level - cand_level)
+    if gap == 0:
+        return 1.0
+    if gap == 1:
+        return 0.85
+    if gap == 2:
+        return 0.6
+    if gap == 3:
+        return 0.4
+    return 0.2
+
+def new_title_match_score(role_title: str, candidate_title: str) -> float:
+    """Return similarity in [0,1] via contains check, token overlap, or fuzzy tokens."""
+    role_norm = normalize_title(role_title)
+    cand_norm = normalize_title(candidate_title)
+
+    if not role_norm or not cand_norm:
+        return 0.0
+
+    # Fast path: substring match in either direction counts as perfect alignment.
+    if role_norm in cand_norm or cand_norm in role_norm:
+        return 1.0
+
+    role_tokens = role_norm.split()
+    cand_tokens = cand_norm.split()
+    if not role_tokens or not cand_tokens:
+        return 0.0
+
+    role_core, role_level = _split_level_tokens(role_tokens)
+    cand_core, cand_level = _split_level_tokens(cand_tokens)
+
+    core_role_tokens = role_core or role_tokens
+    core_cand_tokens = cand_core or cand_tokens
+
+    role_set = set(core_role_tokens)
+    cand_set = set(core_cand_tokens)
+    overlap = len(role_set & cand_set)
+    if overlap:
+        base = overlap / max(len(role_set), len(cand_set))
+        level_adj = _level_alignment_score(role_level, cand_level)
+        return 0.8 * base + 0.2 * level_adj
+
+    # Optional fuzzy pass: average the best token similarity in both directions.
+    def _avg_best_similarity(source: list[str], target: list[str]) -> float:
+        total = 0.0
+        for token in source:
+            best = 0.0
+            for other in target:
+                if other == token:
+                    best = 1.0
+                    break
+                if abs(len(other) - len(token)) > 3:
+                    continue
+                ratio = SequenceMatcher(None, token, other).ratio()
+                if ratio > best:
+                    best = ratio
+                if best >= 0.95:
+                    break
+            total += best
+        return total / len(source)
+
+    fuzzy_forward = _avg_best_similarity(role_tokens, cand_tokens)
+    fuzzy_backward = _avg_best_similarity(cand_tokens, role_tokens)
+    fuzzy_score = min(fuzzy_forward, fuzzy_backward)
+
+    return fuzzy_score if fuzzy_score >= 0.75 else 0.0
 
 def _compute_tenure_months(stints):
     """Return month counts for all stints with usable date spans."""
