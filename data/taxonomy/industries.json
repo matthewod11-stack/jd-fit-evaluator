@@ -1,0 +1,52 @@
+{
+  "saas": [
+    "subscription",
+    "cloud",
+    "b2b",
+    "software-as-a-service",
+    "salesforce",
+    "aws"
+  ],
+  "web3": [
+    "blockchain",
+    "crypto",
+    "defi",
+    "smart contract",
+    "l1",
+    "layer 1",
+    "token"
+  ],
+  "robotics": [
+    "robot",
+    "automation",
+    "autonomous",
+    "mechatronics",
+    "ros",
+    "slam"
+  ],
+  "fintech": [
+    "payments",
+    "fintech",
+    "banking",
+    "lending",
+    "underwriting",
+    "kyc",
+    "aml"
+  ],
+  "ai": [
+    "machine learning",
+    "ml",
+    "ai",
+    "llm",
+    "transformer",
+    "vision",
+    "nlp"
+  ],
+  "hardware": [
+    "semiconductor",
+    "chip",
+    "fpga",
+    "gpu",
+    "asic"
+  ]
+}

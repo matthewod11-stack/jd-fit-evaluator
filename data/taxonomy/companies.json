@@ -1,0 +1,44 @@
+{
+  "Google": [
+    "saas"
+  ],
+  "Microsoft": [
+    "saas"
+  ],
+  "OpenAI": [
+    "saas",
+    "ai"
+  ],
+  "Anthropic": [
+    "ai",
+    "saas"
+  ],
+  "Coinbase": [
+    "web3",
+    "fintech"
+  ],
+  "Agoric": [
+    "web3"
+  ],
+  "Vecna Robotics": [
+    "robotics"
+  ],
+  "Boston Dynamics": [
+    "robotics"
+  ],
+  "Stripe": [
+    "fintech",
+    "saas"
+  ],
+  "Square": [
+    "fintech",
+    "saas"
+  ],
+  "Meta": [
+    "saas"
+  ],
+  "Nvidia": [
+    "hardware",
+    "ai"
+  ]
+}

@@ -1,0 +1,8 @@
+Title: Senior Technical Recruiter
+Level: Senior
+Industries: saas, web3, robotics
+
+Must-have: 5+ years recruiting for software/infra roles; end-to-end ownership (reqs -> offers).
+Must-have: Sourcing at scale, structured interviews, hiring manager partnership.
+Must-have: Experience in at least one of SaaS, Web3, or Robotics.
+Nice-to-have: University programs, internship pipelines, ATS (Greenhouse), compensation calibration.
