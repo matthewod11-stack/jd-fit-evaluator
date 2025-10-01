@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 from datetime import date
 from .weights import DEFAULT_WEIGHTS
-from ..models.embeddings import embed, cos
+from ..models.embeddings import embed, _cosine as cosine
 
 def _safe_months_between(a: Optional[date], b: Optional[date]) -> int:
     if not (isinstance(a, date) and isinstance(b, date)):
@@ -51,7 +51,7 @@ def context_penalty(text: str) -> float:
     hiring = embed("Work that involves hiring candidates, owning requisitions, sourcing, interviewing, offers.")
     recruited = embed("Being a job applicant or being recruited by a company.")
     e = embed(text[:2000])
-    ch = cos(e, hiring); cr = cos(e, recruited)
+    ch = cosine(e, hiring); cr = cosine(e, recruited)
     return max(0.0, 0.2 if cr > ch else 0.0)
 
 def recency_score(stints, horizon_months=36):
@@ -66,7 +66,7 @@ def recency_score(stints, horizon_months=36):
 
 def skill_sem_sim(jd_blob: str, cand_blob: str) -> float:
     if not jd_blob or not cand_blob: return 0.0
-    return cos(embed(jd_blob), embed(cand_blob))
+    return cosine(embed(jd_blob), embed(cand_blob))
 
 
 def map_industries_for_stints(stints, companies_tax: dict, keywords_tax: dict):

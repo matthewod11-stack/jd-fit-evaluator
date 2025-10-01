@@ -45,6 +45,23 @@ def parse_args() -> argparse.Namespace:
         "--output-dir",
         help="Override output directory (defaults to data/raw/<batch-id>)"
     )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.75,
+        help="Threshold for auto-splitting sensitivity (0.0-1.0, lower=more sensitive)"
+    )
+    parser.add_argument(
+        "--min-gap-pages",
+        type=int,
+        default=1,
+        help="Minimum gap (in pages) before another start is valid"
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Remove existing outputs for this batch before writing"
+    )
     return parser.parse_args()
 
 
@@ -113,7 +130,7 @@ def normalise_pages(pages: Iterable[int], total_pages: int) -> List[int]:
     return sorted(indexes)
 
 
-def auto_split(reader: PdfReader, batch_id: str) -> List[CandidateSlice]:
+def auto_split(reader: PdfReader, batch_id: str, threshold: float = 0.75, min_gap_pages: int = 1) -> List[CandidateSlice]:
     slices: List[CandidateSlice] = []
     current: Optional[CandidateSlice] = None
     current_email_key: Optional[str] = None
@@ -128,8 +145,9 @@ def auto_split(reader: PdfReader, batch_id: str) -> List[CandidateSlice]:
             is_new_candidate = True
         elif emails and email_key != current_email_key:
             is_new_candidate = True
-        elif not emails and current and len(current.pages) >= 3:
+        elif not emails and current and len(current.pages) >= max(min_gap_pages, int(3 * threshold)):
             # Heuristic: long resumes without emails likely signal a new candidate
+            # Use threshold to adjust sensitivity and min_gap_pages for minimum resume length
             is_new_candidate = True
 
         if is_new_candidate:
@@ -229,6 +247,17 @@ def main() -> None:
         raise SystemExit(f"Input PDF not found: {input_path}")
 
     batch_dir = ensure_batch_paths(args.batch_id, args.output_dir)
+    
+    # Clean existing outputs if --force is specified
+    if args.force:
+        import shutil
+        resumes_dir = batch_dir / "resumes"
+        manifest_csv = batch_dir / "candidate_manifest.csv"
+        if resumes_dir.exists():
+            shutil.rmtree(resumes_dir)
+        if manifest_csv.exists():
+            manifest_csv.unlink()
+    
     reader = load_pdf(input_path)
 
     slices: List[CandidateSlice]
@@ -240,7 +269,7 @@ def main() -> None:
     else:
         if not args.auto:
             raise SystemExit("Auto mode must be enabled when no guide is provided (use --auto or --guide).")
-        slices = auto_split(reader, args.batch_id)
+        slices = auto_split(reader, args.batch_id, args.threshold, args.min_gap_pages)
         if not slices:
             raise SystemExit("Auto splitter produced no slices; please provide a guide YAML.")
 
