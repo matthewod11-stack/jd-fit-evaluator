@@ -24,19 +24,13 @@ def _load_model():
     _llm = Llama(model_path=model_path, embedding=True, n_ctx=settings.embed_ctx)
     return _llm
 
-def embed(text: str) -> np.ndarray:
-    m = _load_model()
-    if m is None:
-        # Deterministic fallback: hash to vector
-        h = hashlib.sha256(text.encode('utf-8', errors='ignore')).digest()
-        rng = np.random.default_rng(int.from_bytes(h[:8], 'little'))
-        v = rng.normal(size=1024).astype('float32')
-        v /= (np.linalg.norm(v) + 1e-9)
-        return v
-    out = m.create_embedding(input=text)
-    v = np.array(out["data"][0]["embedding"], dtype='float32')
-    v /= (np.linalg.norm(v) + 1e-9)
-    return v
+def embed(text: str):
+    """Deterministic pure-Python fallback (no numpy)."""
+    h = 2166136261
+    for ch in (text or ""):
+        h ^= ord(ch)
+        h = (h * 16777619) & 0xFFFFFFFF
+    return [(h >> i) & 0xFF for i in range(0, 128, 8)]
 
 def cos(u, v) -> float:
     return float(np.dot(u, v) / (np.linalg.norm(u)*np.linalg.norm(v) + 1e-9))

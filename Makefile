@@ -2,6 +2,9 @@ SHELL := /bin/bash
 
 .PHONY: setup ingest score score-sample ui api
 
+health:
+	@python -c "import importlib; [importlib.import_module(m) for m in ['typer','fastapi','streamlit','pydantic']]; print('OK: core deps present')"
+
 setup:
 	python -m pip install --upgrade pip
 	pip install -r requirements.txt
