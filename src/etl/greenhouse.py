@@ -54,24 +54,36 @@ def download_attachment(aid: int) -> tuple[str, bytes]:
 
 # --- light heuristics to normalize candidate for scoring ---
 
-TITLE_HINTS = [
-    ("recruiter", 2),
-    ("technical recruiter", 2),
-    ("senior technical recruiter", 2),
-    ("talent acquisition", 2),
-    ("people operations", 2),
-    ("hr operations", 2),
-    ("sourcer", 1),
-    ("recruiting manager", 3),
-]
+TITLE_HINTS = {
+    "product_designer": [
+        "product designer","senior product designer","ux designer",
+        "senior ux designer","ui/ux designer","interaction designer",
+        "design lead","experience designer"
+    ],
+    "web3_design_signals": [
+        "defi","web3","crypto","blockchain","wallet","smart contract",
+        "protocol","metamask","uniswap","aave","lido","staking","dapp"
+    ],
+    # legacy keys may remain if referenced elsewhere
+}
 
 def guess_titles_norm(text: str) -> list[tuple[str,int]]:
     s = text.lower()
     hits = []
-    for key, lvl in TITLE_HINTS:
-        if key in s:
-            role = "recruiter" if "recruit" in key or "talent" in key else "people_ops"
-            hits.append((role, lvl))
+    
+    # Check for product designer signals
+    if "product_designer" in TITLE_HINTS:
+        for keyword in TITLE_HINTS["product_designer"]:
+            if keyword in s:
+                hits.append(("product_designer", 3))
+                break
+    
+    # Check for web3 design signals
+    if "web3_design_signals" in TITLE_HINTS:
+        web3_count = sum(1 for keyword in TITLE_HINTS["web3_design_signals"] if keyword in s)
+        if web3_count > 0:
+            hits.append(("web3_experience", min(web3_count, 3)))
+    
     # de-dup preserve order
     seen = set(); out = []
     for h in hits:

@@ -2,6 +2,15 @@
 from datetime import date
 from typing import Optional
 
+def normalize_title(title: str) -> str:
+    t = (title or "").lower()
+    if any(k in t for k in [
+        "product designer","ux designer","ui/ux","interaction designer",
+        "experience designer","design lead"
+    ]):
+        return "Product Designer"
+    return title or ""
+
 def _to_date(val: str) -> Optional[date]:
     """Accepts 'YYYY-MM'|'YYYY-MM-DD'|'YYYY' and returns date; None if invalid."""
     if not val:
