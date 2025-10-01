@@ -1,45 +1,27 @@
 [
   {
-    "candidate": "John Doe",
-    "fit": 0.85,
-    "candidate_id": "123",
-    "name": "John Doe",
-    "fit_score": 0.85,
-    "titles_norm": [
-      "software engineer",
-      "developer"
-    ],
-    "industry_tags": [
-      "technology",
-      "fintech"
-    ],
-    "subs": {
-      "title": 0.9,
-      "industry": 0.8
-    },
+    "candidate": "Alex Rivera",
+    "fit": 20.0,
+    "title": 0.0,
+    "industry": 0.0,
+    "skills": 0.0,
+    "context": 1.0,
+    "tenure": 0.0,
+    "recency": 1.0,
+    "bonus": 0.0,
     "why": [
-      "Strong technical background",
-      "Relevant industry experience"
-    ]
-  },
-  {
-    "candidate": "Jane Smith",
-    "fit": 0.72,
-    "candidate_id": "456",
-    "name": "Jane Smith",
-    "fit_score": 0.72,
-    "titles_norm": [
-      "product manager"
+      "Titles match score: 0.00 (last level gap soft-penalized)",
+      "Industry relevance: 0.00",
+      "Skills semantic sim: 0.00",
+      "Context alignment: 1.00",
+      "Tenure (avg 0.0 mo, last 0.0 mo): 0.00",
+      "Recency: 1.00"
     ],
-    "industry_tags": [
-      "healthcare"
-    ],
-    "subs": {
-      "title": 0.7,
-      "industry": 0.6
-    },
-    "why": [
-      "Good product experience"
+    "rationale": [
+      "Has recent Web3/DeFi stint (\u22643y): evidence 'defi'",
+      "Wallet/smart contract exposure: evidence 'wallet'",
+      "Usability testing experience: evidence 'usability testing'",
+      "Title aligned to Product/UX Designer: score=0"
     ]
   }
 ]

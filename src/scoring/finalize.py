@@ -52,3 +52,19 @@ def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dic
         "title": tscore, "industry": iscore, "skills": sscore, "context": cscore,
         "tenure": ten, "recency": rscore, "bonus": bscore
     }, "why": why}
+
+
+def _evidence(snippet_pool: list[str], *needles: str, default: str = "(no direct snippet)"):
+    s = " ".join(snippet_pool).lower()
+    for n in needles:
+        if n and n.lower() in s:
+            return n
+    return default
+
+def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> list[str]:
+    return [
+      f"Has recent Web3/DeFi stint (≤3y): evidence '{_evidence(resume_terms, 'defi','web3','protocol')}'",
+      f"Wallet/smart contract exposure: evidence '{_evidence(resume_terms, 'wallet','smart contract','metamask')}'",
+      f"Usability testing experience: evidence '{_evidence(resume_terms, 'usability testing','user research')}'",
+      f"Title aligned to Product/UX Designer: score={features.get('title_score',0)}",
+    ]
