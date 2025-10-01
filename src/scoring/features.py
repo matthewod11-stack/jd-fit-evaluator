@@ -1,9 +1,42 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from typing import Callable, List, Dict, Any, Optional
 from datetime import date
+
+import numpy as np
+
 from .weights import DEFAULT_WEIGHTS
-from ..models.embeddings import embed, _cosine as cosine
+from ..models.embeddings import _cosine as cosine
+
+
+def _cosine(a, b):
+    """Compute cosine similarity with strict shape and finiteness checks."""
+    a_arr = np.asarray(a, dtype=np.float64)
+    b_arr = np.asarray(b, dtype=np.float64)
+
+    if a_arr.ndim != 1:
+        raise ValueError(f"expected 1D vector for 'a', got shape {a_arr.shape}")
+    if b_arr.ndim != 1:
+        raise ValueError(f"expected 1D vector for 'b', got shape {b_arr.shape}")
+    if a_arr.shape[0] != b_arr.shape[0]:
+        raise ValueError(
+            f"cosine requires matching shapes, got {a_arr.shape[0]} and {b_arr.shape[0]} elements"
+        )
+
+    if not (np.isfinite(a_arr).all() and np.isfinite(b_arr).all()):
+        raise ValueError("cosine received non-finite values")
+
+    norm_a = np.linalg.norm(a_arr)
+    norm_b = np.linalg.norm(b_arr)
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+
+    value = float(np.dot(a_arr, b_arr) / (norm_a * norm_b))
+    if value > 1.0:
+        return 1.0
+    if value < -1.0:
+        return -1.0
+    return value
 
 def _safe_months_between(a: Optional[date], b: Optional[date]) -> int:
     if not (isinstance(a, date) and isinstance(b, date)):
@@ -45,12 +78,15 @@ def title_match_score(titles: list[tuple[str,int]], target_titles: list[str], ta
     lvl_score = 1.0 if lvl_gap <= 1 else 0.6 if lvl_gap == 2 else 0.3
     return 0.7*role_match + 0.3*lvl_score
 
-def context_penalty(text: str) -> float:
+EmbedFn = Callable[[str], Any]
+
+
+def context_penalty(text: str, embed_fn: EmbedFn) -> float:
     # Embedding-based sense disambiguation could be added; here a simple heuristic plus embeddings stub
     if not text: return 0.0
-    hiring = embed("Work that involves hiring candidates, owning requisitions, sourcing, interviewing, offers.")
-    recruited = embed("Being a job applicant or being recruited by a company.")
-    e = embed(text[:2000])
+    hiring = embed_fn("Work that involves hiring candidates, owning requisitions, sourcing, interviewing, offers.")
+    recruited = embed_fn("Being a job applicant or being recruited by a company.")
+    e = embed_fn(text[:2000])
     ch = cosine(e, hiring); cr = cosine(e, recruited)
     return max(0.0, 0.2 if cr > ch else 0.0)
 
@@ -64,9 +100,9 @@ def recency_score(stints, horizon_months=36):
     if months <= horizon_months: return 1.0 - (months / (horizon_months*1.2))
     return 0.2
 
-def skill_sem_sim(jd_blob: str, cand_blob: str) -> float:
+def skill_sem_sim(jd_blob: str, cand_blob: str, embed_fn: EmbedFn) -> float:
     if not jd_blob or not cand_blob: return 0.0
-    return cosine(embed(jd_blob), embed(cand_blob))
+    return cosine(embed_fn(jd_blob), embed_fn(cand_blob))
 
 
 def map_industries_for_stints(stints, companies_tax: dict, keywords_tax: dict):
