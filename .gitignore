@@ -203,3 +203,10 @@ config.json
 output/
 results/
 reports/
+
+# PII / raw resume artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/ingest/*
+!data/ingest/.gitkeep
+*.pdf

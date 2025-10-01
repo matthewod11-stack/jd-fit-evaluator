@@ -1,4 +1,7 @@
-
+"""
+DEPRECATED (2025-10-01): Greenhouse Harvest ingestion is paused for MVP.
+Use file-based ingestion via tools/split_resumes_and_manifest.py and manifest CSV.
+"""
 import requests, io, os, time, typing as t, pathlib, json
 from datetime import datetime
 from ..config import settings

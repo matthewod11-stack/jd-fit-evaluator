@@ -14,7 +14,7 @@ A **multi-signal, JD-anchored candidate evaluator**. Pulls applications from **G
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2) Set env (copy and edit your token/job IDs)
+# 2) Set env (copy and edit your token/job IDs)  # Deprecated (will return post-MVP)
 cp .env.example .env
 
 # 3) Try the sample scoring with local files (no Greenhouse needed)
@@ -28,7 +28,24 @@ make api
 
 > **Local embeddings**: Drop a GGUF embedding-capable model in `models/` (e.g., `models/llama-3.1-8b-instruct-q5_0.gguf`). If not found, the app **falls back** to a deterministic pseudo-embedding so you can test the full flow without GPU/large models. Replace with your preferred local **GGUF** embedding model (LLaMA, Nomic, etc.).
 
-## Environment
+## File-based Resume Ingestion (No Harvest API)
+
+If you cannot use Greenhouse Harvest, you can ingest resumes from a single PDF per batch (~30 resumes).
+
+**Step 1 — Split and build manifest**
+source .venv/bin/activate
+pip install -r tools/requirements.txt
+make split-batch INPUT=data/raw/batch-01/all_resumes.pdf BATCH=batch-01
+# (optional) add GUIDE=data/raw/batch-01/guide.yaml
+
+**Outputs**
+- data/raw/batch-01/resumes/<candidate_id>.pdf
+- data/raw/batch-01/candidate_manifest.csv
+
+**Step 2 — Ingest from manifest**
+(Coming next: python -m src.cli ingest --manifest data/raw/batch-01/candidate_manifest.csv)
+
+## Environment (Deprecated — Harvest API will return post-MVP)
 
 Create `.env`:
 ```
@@ -42,7 +59,8 @@ Only `GH_TOKEN` is required for pulling real candidates; otherwise use the sampl
 ## Make Targets
 
 - `make setup` – install deps, preflight
-- `make ingest` – pull from Greenhouse for the configured `GH_JOB_ID`
+- `make split-batch` – split a multi-resume PDF into per-candidate PDFs + manifest
+- `make ingest` – **Deprecated (will return post-MVP)** pull from Greenhouse for the configured `GH_JOB_ID`
 - `make score` – score ingested candidates against `data/sample/jd.txt` (or your JD path via flag)
 - `make score-sample` – score the included sample candidate JSON against the sample JD
 - `make ui` – launch Streamlit at http://localhost:8501
