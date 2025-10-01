@@ -1,44 +1,46 @@
-from math import sqrt
+# JDFit Embeddings: Ollama backend + deterministic fallback
+# TODO(PR-001): Implement Embedder factory and two concrete embedders.
+#  - get_embedder(config) -> embedder with .embed_text(str)->np.ndarray shape (768,)
+#  - OllamaEmbedder: calls /api/embeddings (model from config), chunk + mean-pool
+#  - DeterministicFallbackEmbedder: blake2s(seed) -> stable 768-d vector
+#  - On-disk cache keyed by (backend|model|text_hash)
+#  - Normalize text (lowercase, strip emails/phones, collapse whitespace)
+#  - Return zero vector for empty text; raise EmbeddingDimError if mismatch
 
-def _cosine(a, b):
-    # Pure-Python cosine to avoid numpy import at import-time
-    if not a or not b: return 0.0
-    # a/b are lists of floats
-    dot = sum(x*y for x, y in zip(a, b))
-    na = sqrt(sum(x*x for x in a))
-    nb = sqrt(sum(y*y for y in b))
-    return 0.0 if na == 0.0 or nb == 0.0 else dot / (na * nb)
+class EmbeddingDimError(Exception):
+    """Raised when an embedding vector does not match EMBED_DIM."""
+    pass
 
-_MODEL = None
-
-def _load_model(path):
-    # TODO: real llama embed model init
-    # Guard so we only try once, and only if a path is provided
-    global _MODEL
-    if _MODEL is None and path:
-        _MODEL = "LLAMA-EMBED-MOCK"  # placeholder; wire in real loader
-    return _MODEL
-
-def embed(texts, model_path=None):
+def get_embedder(config):
     """
-    Returns list[list[float]] embeddings.
-    If model_path provided and model loadable => real vectors.
-    Otherwise deterministic hash-based fallback (stable across runs).
+    TODO(PR-001): Return an embedder instance based on EMBED_BACKEND.
+    Must guarantee .embed_text returns 1-D float array of length EMBED_DIM (768).
+    Fallback to DeterministicFallbackEmbedder if Ollama unavailable or shape invalid.
     """
-    mdl = _load_model(model_path)
-    if mdl:
-        # TODO: replace with real embedding call; keep length and determinism consistent
-        return [_det_hash_vec(t, 256) for t in texts]  # temporary until model wired
+    raise NotImplementedError("PR-001: get_embedder")
 
-    # deterministic fallback
-    return [_det_hash_vec(t, 256) for t in texts]
+class OllamaEmbedder:
+    def __init__(self, model: str, dim: int, cache_path: str):
+        self.model = model
+        self.dim = dim
+        self.cache_path = cache_path
+        # TODO(PR-001): init cache (LMDB/SQLite). Pre-create tables if needed.
 
-def _det_hash_vec(s: str, dim: int):
-    # Stable, fast fallback vector
-    h = abs(hash(s))
-    out = []
-    for i in range(dim):
-        # simple, stable pseudo-random but deterministic
-        x = ((h >> (i % 32)) & 0xFFFF) / 65535.0
-        out.append(2.0 * x - 1.0)
-    return out
+    def embed_text(self, text: str):
+        """
+        TODO(PR-001): Normalize -> chunk -> POST /api/embeddings -> mean-pool -> validate shape.
+        Return np.ndarray (dim,), float64. Return zeros if text is blank.
+        """
+        raise NotImplementedError("PR-001: OllamaEmbedder.embed_text")
+
+class DeterministicFallbackEmbedder:
+    def __init__(self, dim: int, salt: str = "jdfit-v1"):
+        self.dim = dim
+        self.salt = salt
+
+    def embed_text(self, text: str):
+        """
+        TODO(PR-001): Use hashlib.blake2s with fixed salt to seed PRNG,
+        expand to self.dim floats, L2-normalize; avoid NaN/Inf.
+        """
+        raise NotImplementedError("PR-001: DeterministicFallbackEmbedder.embed_text")

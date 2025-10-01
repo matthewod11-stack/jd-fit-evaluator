@@ -5,6 +5,17 @@ from datetime import date
 from .weights import DEFAULT_WEIGHTS
 from ..models.embeddings import embed, _cosine as cosine
 
+# Embedding usage and cosine utilities
+# TODO(PR-001): Ensure compute_fit calls embedder.embed_text and receives 1-D vectors.
+# TODO(PR-001): Add _cosine(a,b) that validates shapes, returns 0.0 on zero vectors.
+
+def _cosine(a, b):
+    """
+    TODO(PR-001): Implement strict shape checks and finite guards.
+    Return float in [-1,1]; 0.0 if either vector is all-zeros.
+    """
+    raise NotImplementedError("PR-001: _cosine")
+
 def _safe_months_between(a: Optional[date], b: Optional[date]) -> int:
     if not (isinstance(a, date) and isinstance(b, date)):
         return 0
