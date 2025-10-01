@@ -1,0 +1,9 @@
+{
+  "candidate_id": "demo-0001",
+  "name": "Alex Rivera",
+  "stints": [
+    {"company": "DEX Labs", "title": "Senior Product Designer", "industry": "Web3/DeFi", "start": "2021-02", "end": null},
+    {"company": "FinCloud", "title": "Product Designer", "industry": "Fintech", "start": "2018-05", "end": "2020-12"}
+  ],
+  "skills": ["wallet", "usability testing", "smart contracts", "protocol design", "Figma", "user research", "DeFi"]
+}

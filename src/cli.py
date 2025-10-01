@@ -3,14 +3,18 @@ import json, os, sys, typer, glob
 from pathlib import Path
 from typing import Optional
 from .config import settings
-from .scoring.finalize import compute_fit
+from .scoring.finalize import compute_fit, build_rationale
 from .etl.greenhouse import ingest_job
 
 app = typer.Typer(help="JD-anchored candidate evaluator CLI")
 
 def load_sample_candidate() -> dict:
-    p = Path("data/sample/candidate_example.json")
-    return json.loads(p.read_text())
+    # Check for Web3 designer candidate first, fallback to default
+    for candidate_file in ["candidate_designer_web3.json", "candidate_example.json"]:
+        p = Path(f"data/sample/{candidate_file}")
+        if p.exists():
+            return json.loads(p.read_text())
+    raise FileNotFoundError("No sample candidate files found")
 
 def load_role_from_jd(jd_path: str) -> dict:
     text = Path(jd_path).read_text()
@@ -47,7 +51,20 @@ def score(jd: str, sample: bool = False):
     rows = []
     for cand in candidates:
         res = compute_fit(cand, role)
-        rows.append({"candidate": cand.get("name", "unknown"), "fit": res["fit"], **res["subs"], "why": res["why"]})
+        
+        # Extract terms for rationale building
+        jd_terms = role.get("jd_skills_blob", "").split()
+        resume_terms = []
+        if "skills" in cand:
+            resume_terms.extend(cand["skills"])
+        if "stints" in cand:
+            for stint in cand["stints"]:
+                resume_terms.extend([stint.get("title", ""), stint.get("industry", ""), stint.get("company", "")])
+        
+        # Build rationale
+        rationale = build_rationale(res["subs"], jd_terms, resume_terms)
+        
+        rows.append({"candidate": cand.get("name", "unknown"), "fit": res["fit"], **res["subs"], "why": res["why"], "rationale": rationale})
         print(f"{cand.get('name','unknown'):25s}  Fit={res['fit']:5.1f}  Why: " + " | ".join(res["why"]))
     Path(out_dir/"scores.json").write_text(json.dumps(rows, indent=2))
     print(f"Saved scores to {out_dir/'scores.json'}")
