@@ -8,6 +8,58 @@ import numpy as np
 from .weights import DEFAULT_WEIGHTS
 from ..models.embeddings import _cosine as cosine
 
+def _compute_tenure_months(stints):
+    """Return month counts for all stints with usable date spans."""
+    if not stints:
+        return []
+
+    months: list[int] = []
+
+    for stint in stints:
+        if not isinstance(stint, dict):
+            continue
+
+        start = stint.get("start_date")
+        end = stint.get("end_date")
+
+        if not isinstance(start, date):
+            continue
+
+        delta = _safe_months_between(start, end)
+        if delta <= 0:
+            continue
+
+        months.append(delta)
+
+    return months
+
+def _compute_recency_months(stints):
+    """Months since the most recent valid end date; None when unknown."""
+    if not stints:
+        return None
+
+    today = date.today()
+
+    for stint in stints:
+        if not isinstance(stint, dict):
+            continue
+
+        end = stint.get("end_date")
+        start = stint.get("start_date")
+
+        if end is None and isinstance(start, date):
+            return 0
+
+        if not isinstance(end, date):
+            continue
+
+        months = (today.year - end.year) * 12 + (today.month - end.month)
+        if today.day < end.day:
+            months -= 1
+        return max(months, 0)
+
+    return None
+
 
 def _cosine(a, b):
     """Compute cosine similarity with strict shape and finiteness checks."""
@@ -39,19 +91,29 @@ def _cosine(a, b):
     return value
 
 def _safe_months_between(a: Optional[date], b: Optional[date]) -> int:
-    if not (isinstance(a, date) and isinstance(b, date)):
+    if not isinstance(a, date):
         return 0
-    return (b.year - a.year) * 12 + (b.month - a.month)
+
+    end = b
+    if end is None:
+        end = date.today()
+    if not isinstance(end, date):
+        return 0
+
+    months = (end.year - a.year) * 12 + (end.month - a.month)
+    if end.day < a.day:
+        months -= 1
+    return max(months, 0)
 
 def tenure_scores(stints, min_avg=18, min_last=12):
-    months = [_safe_months_between(s.get("start_date"), s.get("end_date")) for s in stints]
+    months = _compute_tenure_months(stints)
     if not months:
         return 0.0, 0.0, 0.0
-    avg = sum(months)/len(months)
+    avg = sum(months) / len(months)
     last = months[0]
     avg_score = min(1.0, avg / min_avg) if min_avg else 1.0
     last_score = min(1.0, last / min_last) if min_last else 1.0
-    return avg, last, 0.6*avg_score + 0.4*last_score
+    return avg, last, 0.6 * avg_score + 0.4 * last_score
 
 def industry_score(stints, target_tags):
     rel_months = 0; total = 0
@@ -91,13 +153,19 @@ def context_penalty(text: str, embed_fn: EmbedFn) -> float:
     return max(0.0, 0.2 if cr > ch else 0.0)
 
 def recency_score(stints, horizon_months=36):
-    # If the most recent relevant stint ended within horizon, score near 1; else decay
-    if not stints: return 0.0
-    from datetime import date
-    # assume stints sorted desc; if current ongoing, recency = 1.0
-    if stints[0].get("end_date") is None: return 1.0
-    months = _safe_months_between(stints[0]["end_date"], date.today())
-    if months <= horizon_months: return 1.0 - (months / (horizon_months*1.2))
+    """Score recency using most recent end date, tolerating missing spans."""
+    months_since = _compute_recency_months(stints)
+    if months_since is None:
+        return 0.0
+
+    if months_since <= 0:
+        return 1.0
+
+    if horizon_months:
+        horizon = float(horizon_months)
+        if months_since <= horizon:
+            return max(0.0, 1.0 - (months_since / (horizon * 1.2)))
+
     return 0.2
 
 def skill_sem_sim(jd_blob: str, cand_blob: str, embed_fn: EmbedFn) -> float:
