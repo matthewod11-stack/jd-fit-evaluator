@@ -1,4 +1,5 @@
 # Product Requirements Document (PRD)
+
 **Project:** JD-Fit Evaluator  
 **Owner:** FoundryHR / Internal HR AI Tooling  
 **Status:** Draft v1.2 (Living Document)  
@@ -7,6 +8,7 @@
 ---
 
 ## 1. Vision & Goals
+
 Recruiters and HR teams waste time manually reviewing resumes. We want an AI-assisted system that:  
 - Pulls candidates from **Greenhouse** (and later, other ATS sources).  
 - Compares each applicant **against the job description (JD)**, not against each other.  
@@ -20,6 +22,7 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 ---
 
 ## 2. Company Context (Agoric)
+
 - **Industry:** Web3, DeFi, Blockchain, Orchestration.  
 - **Product:** Ymax — intelligent DeFi command center (multi-protocol orchestration).  
 - **Technology themes:** crypto wallets, smart contracts, decentralized protocols, AI/LLM-driven optimization.  
@@ -30,6 +33,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 3. Job Description (Target Role)
+
 **Title:** Senior Product Designer (Web3/DeFi)  
 **Key Responsibilities:**  
 - Design end-to-end flows for DeFi orchestration.  
@@ -48,6 +52,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 4. MVP Fit Signals
+
 **Title/Role:** Product Designer, UX Designer, Senior Designer, Senior Product Designer.  
 **Industry:** Web3, DeFi, Crypto, Fintech, SaaS.  
 **Skills/Experience:**  
@@ -61,6 +66,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 5. Key Features (MVP Scope)
+
 - **Ingestion:** Greenhouse API → parse ~200 resumes for this JD.  
 - **Stint Extraction:** Normalize roles, companies, industries.  
 - **Taxonomy Enrichment:** Add **Agoric**, **Ymax**, **Web3**, **DeFi**, **crypto wallets**, **smart contracts**.  
@@ -71,6 +77,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 6. Compliance & Ethics
+
 - Keep resumes local (no external API).  
 - Provide rationale for transparency.  
 - Bias mitigation out of scope for MVP.  
@@ -79,6 +86,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 7. Milestones
+
 **MVP (Agoric Senior Product Designer role):**  
 - Parse 200 candidates via Greenhouse.  
 - Apply JD-aware scoring with DeFi/Web3 signals.  
@@ -99,6 +107,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 8. Open Questions
+
 - How much to pre-train taxonomy with specific protocols (Uniswap, Aave, etc.) vs. general Web3 terms?  
 - How to weight AI/LLM product design experience vs. DeFi design?  
 - Should collaboration evidence (cross-functional teams) be modeled explicitly?  
@@ -106,6 +115,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ---
 
 ## 9. Ownership
+
 - **Owner:** FoundryHR product team.  
 - **Partner:** Agoric (test case, Senior Product Designer role).  
 - **Workflow:** PRD v1.2 in `/docs/` → updated with each sprint.  
