@@ -1,5 +1,6 @@
 
 # Product Requirements Document (PRD)
+
 **Project:** JD-Fit Evaluator  
 **Owner:** FoundryHR / Internal HR AI Tooling  
 **Status:** Draft v1.0 (Living Document)  
@@ -8,8 +9,9 @@
 ---
 
 ## 1. Vision & Goals
-Recruiters and HR teams waste time manually reviewing resumes. We want an AI-assisted system that:  
-- Pulls candidates from **Greenhouse** automatically.  
+
+Recruiters and HR teams waste time manually reviewing resumes. We want an AI-assisted system that:
+- Pulls candidates from **Greenhouse** automatically.
 - Compares each applicant **against the job description (JD)**, not against each other.  
 - Produces a **Fit Score (0–100)** plus a **rationale (“why”)**.  
 - Uses **multi-signal evaluation** (titles, industries, tenure, skills, context).  
@@ -20,12 +22,15 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 ---
 
 ## 2. Users & Use Cases
+
 **Primary Users:**  
+
 - Recruiters / Talent Acquisition  
 - HR Business Partners  
 - Hiring Managers (view-only)  
 
 **Use Cases:**  
+
 - First-pass resume screen (bulk).  
 - Structured shortlisting for a JD.  
 - Candidate review with evidence-based rationale.  
@@ -36,6 +41,7 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 ## 3. Key Features
 
 ### Ingestion
+
 - Connect to **Greenhouse Harvest API**.  
 - Pull job applications, candidates, and attachments (resumes).  
 - Parse resumes (PDF/DOCX/TXT).  
@@ -43,6 +49,7 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 - Map companies/industries with taxonomy.  
 
 ### Scoring Engine
+
 - **Sub-scores (0–1):**
   - Title relevance (role/level).  
   - Industry alignment.  
@@ -55,12 +62,14 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 - **Rationale** = 3–5 bullet explanation of why the score.  
 
 ### Machine Learning
+
 - Train Logistic Regression (later XGBoost/LoRA fine-tune).  
 - Inputs: historical sub-scores + labels (advance/hire vs reject).  
 - Outputs: calibrated **Prob(Advance)**.  
 - Blend: `Final = α·FitScore + (1-α)·Prob(Advance)` (tunable).  
 
 ### UI (Streamlit)
+
 - JD editor + weight sliders.  
 - Candidate JSON viewer (ingested or manual).  
 - Results table with scores, subs, and rationale.  
@@ -68,6 +77,7 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 - Export scores to CSV/JSON.  
 
 ### API (FastAPI)
+
 - POST `/score` with JD + candidate JSON → returns score & rationale.  
 
 ---
@@ -89,7 +99,8 @@ Final Output (score + rationale)
 ```
 
 **Stack:**  
-- Python (Typer CLI, FastAPI API, Streamlit UI).  
+
+- Python (Typer CLI, FastAPI API, Streamlit UI).
 - Local Llama embeddings via `llama-cpp-python`.  
 - Deterministic fallback embeddings (hash-based).  
 - Resume parsing: pdfminer.six, python-docx.  
@@ -108,6 +119,7 @@ Final Output (score + rationale)
 ---
 
 ## 6. Compliance & Ethics
+
 - Keep resumes local (no external API for PII).  
 - Provide rationale for transparency.  
 - AI = decision support only; **never auto-reject**.  
@@ -118,6 +130,7 @@ Final Output (score + rationale)
 ## 7. Milestones
 
 **MVP (complete):**  
+
 - Greenhouse ingestion.  
 - Resume parsing.  
 - Stint extraction.  
@@ -127,6 +140,7 @@ Final Output (score + rationale)
 - CLI + API.  
 
 **Next:**  
+
 - Improve stint parsing accuracy (NER).  
 - Expand taxonomy coverage.  
 - Blend trained model outputs.  
@@ -134,6 +148,7 @@ Final Output (score + rationale)
 - Add export to Greenhouse or ATS notes.  
 
 **Future:**  
+
 - UI to compare multiple candidates side-by-side.  
 - Multi-JD evaluation (candidate vs. multiple roles).  
 - LoRA fine-tuned Llama for richer rationale & scoring.  
@@ -142,6 +157,7 @@ Final Output (score + rationale)
 ---
 
 ## 8. Open Questions
+
 - Should training labels use `candidate_id` instead of name? (safer)  
 - How to integrate seamlessly back into Greenhouse workflow?  
 - How to ensure bias mitigation and fairness across sub-groups?  
@@ -149,7 +165,7 @@ Final Output (score + rationale)
 ---
 
 ## 9. Ownership & Workflow
+
 - **Owner:** FoundryHR product team.  
 - **Contributors:** Engineering (ML/infra), HR Ops (workflow), TA leads (feedback).  
 - **Workflow:** PRD in `/docs/PRD.md` → updated with each sprint; repo is source of truth.  
-
