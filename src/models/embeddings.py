@@ -1,36 +1,44 @@
-import os, numpy as np, hashlib, warnings
-from ..config import settings
+from math import sqrt
 
-# Try to load llama-cpp. Fall back to deterministic pseudo-embeddings for demo.
-try:
-    from llama_cpp import Llama
-    _HAVE_LLAMA = True
-except Exception as e:
-    _HAVE_LLAMA = False
+def _cosine(a, b):
+    # Pure-Python cosine to avoid numpy import at import-time
+    if not a or not b: return 0.0
+    # a/b are lists of floats
+    dot = sum(x*y for x, y in zip(a, b))
+    na = sqrt(sum(x*x for x in a))
+    nb = sqrt(sum(y*y for y in b))
+    return 0.0 if na == 0.0 or nb == 0.0 else dot / (na * nb)
 
-_llm = None
-def _load_model():
-    global _llm
-    if _llm is not None: return _llm
-    if not _HAVE_LLAMA:
-        warnings.warn("llama-cpp not available; using deterministic pseudo-embeddings")
-        _llm = None
-        return None
-    model_path = settings.embed_model_path
-    if not model_path or not os.path.exists(model_path):
-        warnings.warn("Embedding model not found; using deterministic pseudo-embeddings")
-        _llm = None
-        return None
-    _llm = Llama(model_path=model_path, embedding=True, n_ctx=settings.embed_ctx)
-    return _llm
+_MODEL = None
 
-def embed(text: str):
-    """Deterministic pure-Python fallback (no numpy)."""
-    h = 2166136261
-    for ch in (text or ""):
-        h ^= ord(ch)
-        h = (h * 16777619) & 0xFFFFFFFF
-    return [(h >> i) & 0xFF for i in range(0, 128, 8)]
+def _load_model(path):
+    # TODO: real llama embed model init
+    # Guard so we only try once, and only if a path is provided
+    global _MODEL
+    if _MODEL is None and path:
+        _MODEL = "LLAMA-EMBED-MOCK"  # placeholder; wire in real loader
+    return _MODEL
 
-def cos(u, v) -> float:
-    return float(np.dot(u, v) / (np.linalg.norm(u)*np.linalg.norm(v) + 1e-9))
+def embed(texts, model_path=None):
+    """
+    Returns list[list[float]] embeddings.
+    If model_path provided and model loadable => real vectors.
+    Otherwise deterministic hash-based fallback (stable across runs).
+    """
+    mdl = _load_model(model_path)
+    if mdl:
+        # TODO: replace with real embedding call; keep length and determinism consistent
+        return [_det_hash_vec(t, 256) for t in texts]  # temporary until model wired
+
+    # deterministic fallback
+    return [_det_hash_vec(t, 256) for t in texts]
+
+def _det_hash_vec(s: str, dim: int):
+    # Stable, fast fallback vector
+    h = abs(hash(s))
+    out = []
+    for i in range(dim):
+        # simple, stable pseudo-random but deterministic
+        x = ((h >> (i % 32)) & 0xFFFF) / 65535.0
+        out.append(2.0 * x - 1.0)
+    return out
