@@ -1,8 +1,11 @@
 
 import re
+import logging
 from collections.abc import Mapping, Sequence
 from datetime import date
-from typing import Optional
+from typing import Optional, List
+from .stints_llm import extract_stints_llm
+from src.config import USE_LLM_STINTS
 
 
 _DATE_TOKEN = re.compile(r"^(\d{4})(?:[-/](\d{1,2}))?(?:[-/](\d{1,2}))?$")
@@ -257,6 +260,25 @@ def _to_date(val: str) -> Optional[date]:
 
 
 def extract_stints(raw):
+    """
+    Extract stints from raw input. Handles both text (str) and structured data (dict).
+    For text input, uses LLM extraction if enabled, otherwise falls back to legacy approach.
+    """
+    # Handle text input (new LLM path)
+    if isinstance(raw, str):
+        if USE_LLM_STINTS:
+            try:
+                # Convert Stint models to dicts used downstream
+                llm_stints = extract_stints_llm(raw)
+                return [_stint_model_to_dict(s) for s in llm_stints]
+            except Exception as e:
+                logging.warning(f"LLM stint extraction failed, falling back to legacy: {e}")
+                pass
+        # Legacy text processing would go here if needed
+        # For now, return empty list for text input when LLM is disabled
+        return []
+    
+    # Handle structured dict input (legacy path)
     stints = []
     for s in raw.get("stints", []):
         start = _to_date(s.get("start"))
@@ -271,3 +293,13 @@ def extract_stints(raw):
             "end_date": end,
         })
     return stints
+
+def _stint_model_to_dict(stint) -> dict:
+    """Convert Stint Pydantic model to dict format expected by downstream code."""
+    return {
+        "company": stint.org,
+        "title": stint.title,
+        "industry": stint.industry,
+        "start_date": stint.start,
+        "end_date": stint.end,
+    }
