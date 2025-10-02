@@ -1,16 +1,125 @@
 
+# PR-004: Streamlit aligns to new keys, sorts by fit desc; optional CSV export fix.
+
 import streamlit as st, json
 import sys
 from pathlib import Path
 from typing import Dict, Any
 import csv
+from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
 
 # Add the project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.scoring.finalize import compute_fit
 
+
+def _candidate_label(source: Dict[str, Any]) -> str:
+    """Choose a stable identifier for display, falling back to candidate_id or name_norm."""
+    for key in ("candidate", "name", "candidate_id", "name_norm", "id"):
+        value = source.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return "unknown"
+
+
+def _coerce_score(value: Any) -> float:
+    """Convert score-like values to floats, defaulting to 0.0 to avoid blank columns."""
+    if value in (None, ""):
+        return 0.0
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _normalize_saved_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Flatten legacy/new saved rows so table/export schemas stay consistent."""
+    subs_in = row.get("subs") if isinstance(row.get("subs"), dict) else {}
+    subs_out: Dict[str, float] = {}
+    for key in SUB_COLUMNS:
+        subs_out[key] = _coerce_score(row.get(key, subs_in.get(key)))
+
+    fit_value = row.get("fit", row.get("fit_score"))
+    fit = _coerce_score(fit_value)
+
+    why = row.get("why")
+    if isinstance(why, list):
+        reasons = why
+    elif isinstance(why, str):
+        reasons = [why]
+    else:
+        reasons = []
+
+    normalized = {
+        "candidate": _candidate_label(row),
+        "fit": fit,
+        "why": reasons,
+        "subs": subs_out,
+    }
+    normalized.update(subs_out)
+
+    # Preserve identifiers if present for downstream use/export
+    for key in ("candidate_id", "name_norm"):
+        if key in row:
+            normalized[key] = row[key]
+
+    return normalized
+
+
+def _load_cached_results() -> list[dict]:
+    """Load cached scores.json (new or legacy structure) if available."""
+    candidates: list[dict] = []
+    for path in (Path("data/out/scores.json"), Path("data/out/scores.legacy.json")):
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text())
+        except Exception:
+            continue
+
+        if isinstance(payload, dict):
+            rows = payload.get("results") or payload.get("scores") or []
+        elif isinstance(payload, list):
+            rows = payload
+        else:
+            continue
+
+        if not isinstance(rows, list):
+            continue
+
+        normalized = [_normalize_saved_row(r) for r in rows if isinstance(r, dict)]
+        if normalized:
+            normalized.sort(key=lambda r: r.get("fit") or 0.0, reverse=True)
+            candidates = normalized
+            break
+
+    return candidates
+
 st.set_page_config(page_title="JD Fit Evaluator", layout="wide")
 st.title("JD-anchored Candidate Evaluator")
+
+
+def _format_result_row(candidate: dict, fit_result: dict) -> dict:
+    """Flatten subscores so table/export share the same columns."""
+    base: Dict[str, Any] = {
+        "candidate": candidate.get("candidate") or candidate.get("name"),
+        "name": candidate.get("name"),
+        "candidate_id": candidate.get("candidate_id") or candidate.get("id"),
+        "name_norm": candidate.get("name_norm"),
+        "fit": fit_result.get("fit"),
+        "why": fit_result.get("why"),
+        "subs": dict(fit_result.get("subs") or {}),
+    }
+
+    for key in SUB_COLUMNS:
+        if key in fit_result:
+            base[key] = fit_result.get(key)
+
+    normalized = _normalize_saved_row(base)
+    return normalized
 
 def parse_role(jd_text: str) -> dict:
     lines = [l.strip("-• ").strip() for l in jd_text.splitlines() if l.strip()]
@@ -90,7 +199,7 @@ save = colRun[1].button("Save Output")
 load_ingested = colRun[2].button("Load first ingested candidate (if exists)")
 
 if 'results' not in st.session_state:
-    st.session_state['results'] = []
+    st.session_state['results'] = _load_cached_results()
 
 if load_ingested:
     files = sorted(Path("data/ingest").glob("*.json"))
@@ -105,11 +214,16 @@ if run:
         role = parse_role(jd_text)
         candidate = json.loads(cand_text)
         res = compute_fit(candidate, role, weights=weights)
-        st.session_state['results'].append({"candidate": candidate.get("name","unknown"), **res})
+        st.session_state['results'].append(_format_result_row(candidate, res))
+        st.session_state['results'].sort(key=lambda r: r.get("fit") or 0.0, reverse=True)
     except Exception as e:
         st.error(f"Error: {e}")
 
 st.subheader("Results")
+table_rows = [{key: row.get(key) for key in TABLE_COLUMNS}
+              for row in st.session_state['results']]
+if table_rows:
+    st.table(table_rows)
 for r in st.session_state['results']:
     st.markdown(f"### {r['candidate']} — Fit **{r['fit']}**")
     st.write(r['why'])
@@ -119,14 +233,10 @@ if save and st.session_state['results']:
     outdir = Path("data/out"); outdir.mkdir(parents=True, exist_ok=True)
     (outdir/"scores.json").write_text(json.dumps(st.session_state['results'], indent=2))
     with (outdir/"scores.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["candidate_id","name","fit_score","titles_norm","industry_tags"])
+        export_rows = [{key: row.get(key) for key in EXPORT_COLUMNS}
+                       for row in st.session_state['results']]
+        w = csv.DictWriter(f, fieldnames=list(EXPORT_COLUMNS))
         w.writeheader()
-        for row in st.session_state['results']:
-            w.writerow({
-                "candidate_id": row.get("candidate_id"),
-                "name": row.get("name"),
-                "fit_score": row.get("fit_score"),
-                "titles_norm": ";".join(row.get("titles_norm", [])),
-                "industry_tags": ";".join(row.get("industry_tags", [])),
-            })
+        for row in export_rows:
+            w.writerow(row)
     st.success("Saved JSON + CSV.")
