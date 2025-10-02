@@ -12,10 +12,10 @@ SAMPLE_SIGNALS = {
 @pytest.mark.skip(reason="PR-05: implement a badge seam in ui.app, then unskip")
 def test_build_confidence_badges_payload_shape():
     """
-    PR-05: Once a testable seam exists, validate we get a stable, testable payload:
-      - list of dicts with keys: name, confidence (0–1), label/text, maybe color/variant.
-    TODO(PR-05): Implement 'build_confidence_badges_payload' (or similar) in ui.app,
-    return a pure-Python structure (no Streamlit objects), then unskip this test.
+        PR-05: Once a testable seam exists, validate we get a stable, testable payload:
+            - list of dicts with keys: name, confidence (0–1), label/text, maybe color/variant.
+        TODO(PR-05): Implement 'build_confidence_badges_payload' (or similar) in ui.app,
+        return a pure-Python structure (no Streamlit objects), then unskip this test.
     """
     app = pytest.importorskip("ui.app")
     payload = app.build_confidence_badges_payload(SAMPLE_SIGNALS)  # type: ignore[attr-defined]
@@ -33,7 +33,7 @@ def test_render_confidence_badges_does_not_throw(monkeypatch):
     We only assert it doesn't raise, not visual output.
     TODO(PR-05): introduce 'render_confidence_badges(badges)' seam, then unskip this test.
     """
-    spec = importlib.util.find_spec("ui.app")
+    spec = importlib.util.find_spec("ui.app") # pyright: ignore[reportAttributeAccessIssue]
     if spec is None:
         pytest.skip("ui.app module not available; adjust module path for confidence badge tests")
     app = importlib.import_module(spec.name)

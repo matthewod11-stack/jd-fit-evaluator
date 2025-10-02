@@ -9,7 +9,7 @@ from src.mapping.title_industry import normalize_title, normalize_industry
 def test_dict_fast_path_mappings():
     """
     Dictionary fast-path should map common designer title variants to a canonical label.
-    TODO(PR-03): Replace EXPECTED_* placeholders with the actual canonical strings used in your map.
+    (PR-03): Replace EXPECTED_* placeholders with the actual canonical strings used in your map.
     """
     cases = [
         ("Sr. Product Designer",        "Product Designer"),
@@ -93,7 +93,7 @@ def test_llm_adjudication_tie_breaker(monkeypatch):
 def test_industry_bucket_mapping(raw, expected_bucket):
     """
     Map common industry labels/variants into a small set of buckets.
-    TODO(PR-03): Align expected buckets with the repo's final taxonomy.
+    (PR-03): Align expected buckets with the repo's final taxonomy.
     """
     got = normalize_industry(raw)
     assert isinstance(got, str)

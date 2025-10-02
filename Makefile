@@ -25,7 +25,8 @@ score:
 	python -m src.cli score data/sample/jd.txt
 
 score-sample:
-	python -m src.cli score data/sample/jd.txt --sample
+	sample:
+	python -m src.cli score docs/Agoric_Senior_Product_Designer_JD.txt --sample
 
 ui:
 	streamlit run ui/app.py

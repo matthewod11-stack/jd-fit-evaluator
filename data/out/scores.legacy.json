@@ -1,29 +1,15 @@
 [
   {
-    "candidate": "Alex Rivera",
-    "fit": 10.0,
-    "title": 0.0,
-    "industry": 0.0,
-    "skills": 0.0,
-    "context": 1.0,
-    "tenure": 0.0,
-    "recency": 0.0,
-    "bonus": 0.0,
-    "why": [
-      "Titles match score: 0.00 (last level gap soft-penalized)",
-      "Industry relevance: 0.00",
-      "Skills semantic sim: 0.00",
-      "Context alignment: 1.00",
-      "Tenure (avg 0.0 mo, last 0.0 mo): 0.00",
-      "Recency: 0.00"
-    ],
-    "rationale": [
-      "Has recent Web3/DeFi stint (\u22643y): evidence 'defi'",
-      "Wallet/smart contract exposure: evidence 'wallet'",
-      "Usability testing experience: evidence 'usability testing'",
-      "Title aligned to Product/UX Designer: score=0"
-    ],
     "candidate_id": "demo-0001",
-    "name_norm": "alex-rivera"
+    "name": "Alex Rivera",
+    "email": "",
+    "title_canonical": "Senior Product Designer",
+    "industry_canonical": "Web3/DeFi",
+    "score": 10.0,
+    "titles_score": 0.0,
+    "industry_score": 0.0,
+    "tenure_score": 0.0,
+    "skills_score": 0.0,
+    "context_score": 1.0
   }
 ]
