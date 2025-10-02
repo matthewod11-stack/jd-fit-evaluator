@@ -152,6 +152,23 @@ def score(
     scores_path.write_text(json.dumps(payload, indent=2))
     legacy_path.write_text(json.dumps(legacy_rows, indent=2))
     print(f"Saved scores to {scores_path} (legacy list: {legacy_path})")
+    # Also write a consolidated rationale file expected by some acceptance scripts
+    # (legacy acceptance checks look for `out/rationales.md`). We write into
+    # repository-root `out/` to keep that expectation stable.
+    rationales_root = Path("out")
+    rationales_root.mkdir(parents=True, exist_ok=True)
+    rationales_path = rationales_root / "rationales.md"
+    with rationales_path.open("w", encoding="utf-8") as rf:
+        for r in rows:
+            # Each `rationale` may be a string or a list of lines/blocks. Normalize
+            # to a Markdown string before writing.
+            raw = r.get("rationale", "")
+            if isinstance(raw, (list, tuple)):
+                rationale_text = "\n\n".join(str(x).strip() for x in raw if x is not None)
+            else:
+                rationale_text = str(raw)
+            rf.write(rationale_text.rstrip() + "\n\n")
+    print(f"Saved rationales to {rationales_path}")
 
 @app.command()
 def ingest(
