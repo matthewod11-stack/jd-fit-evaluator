@@ -1,16 +1,16 @@
 {
   "artifact": {
     "version": "scores.v2",
-    "generated_at": "2025-10-02T22:33:38+00:00",
+    "generated_at": "2025-10-02T22:52:58+00:00",
     "jd_label": "agoric-senior-product-designer-jd",
-    "source_jd": "/Users/mod/Desktop/jd-fit-evaluator/docs/Agoric_Senior_Product_Designer_JD.txt",
+    "source_jd": "docs/Agoric_Senior_Product_Designer_JD.txt",
     "candidate_count": 1,
     "embed_config": {
       "backend": "deterministic",
       "model": "nomic-embed-text",
       "dim": 768,
       "ctx": 4096,
-      "cache_path": ".cache/test-sample-embeddings.db"
+      "cache_path": ".cache/test-embeddings.db"
     }
   },
   "results": [
