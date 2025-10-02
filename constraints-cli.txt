@@ -1,0 +1,7 @@
+#############################
+# CLI compatibility pins
+# Purpose: ensure stable Typer help/parse behavior across environments
+# Usage: pip install -r requirements.txt -c constraints-cli.txt
+#############################
+click==8.1.7
+typer==0.9.0

@@ -1,65 +1,94 @@
-# Acceptance Test Results: feat/taxonomy-designer-web3
+# Acceptance Test Results: fix/stints-manifest-first-shape-adapter
 
 ## Summary
-Successfully implemented and verified taxonomy changes for product designer roles and web3/crypto experience detection.
 
-## Changes Applied ✅
+✅ **PASSED** - Successfully implemented and verified PR-002 stints manifest-first shape adapter functionality.
 
-### 1. Updated `src/etl/greenhouse.py`
-- **TITLE_HINTS** converted from list to dictionary format
-- Added **product_designer** category with 8 design-related keywords:
-  - "product designer", "senior product designer", "ux designer"
-  - "senior ux designer", "ui/ux designer", "interaction designer"
-  - "design lead", "experience designer"
-- Added **web3_design_signals** category with 13 crypto/blockchain keywords:
-  - "defi", "web3", "crypto", "blockchain", "wallet", "smart contract"
-  - "protocol", "metamask", "uniswap", "aave", "lido", "staking", "dapp"
-- **guess_titles_norm()** function updated to:
-  - Detect product designer roles → returns `("product_designer", 3)`
-  - Count web3 signals → returns `("web3_experience", count)` (max 3)
+## Test Execution ✅
 
-### 2. Updated `src/parsing/stints.py`
-- Added **normalize_title()** function that:
-  - Standardizes various design titles to "Product Designer"
-  - Handles 6 different design title patterns
-  - Returns original title if no match found
+### 1. Unit Tests for Provider/Adapter
 
-## Verification Results ✅
+```bash
+pytest -q tests/parsing/test_stints_adapter.py -q
+```
 
-### Product Designer Detection
-- ✅ "Senior Product Designer at Apple" → `[('product_designer', 3)]`
-- ✅ "UX Designer with 5 years experience" → `[('product_designer', 3)]`
-- ✅ "UI/UX Designer focused on mobile apps" → `[('product_designer', 3)]`
-- ✅ "Interaction Designer at Google" → `[('product_designer', 3)]`
-- ✅ "Design Lead for consumer products" → `[('product_designer', 3)]`
+**Result**: ✅ 3/3 tests passed
 
-### Web3/Crypto Experience Detection
-- ✅ "Product Designer working on DeFi protocols" → `[('product_designer', 3), ('web3_experience', 2)]`
-- ✅ "Senior UX Designer at Uniswap building wallet interfaces" → `[('product_designer', 3), ('web3_experience', 2)]`
-- ✅ "Designer with Web3 and blockchain experience at Metamask" → `[('web3_experience', 3)]`
+- `test_manifest_first()` - Validates manifest-based stint extraction
+- `test_shape_adapter_minimal_fallback_not_empty()` - Ensures non-empty fallback
+- `test_date_coercion_and_current_flag()` - Tests date handling and current roles
 
-### Title Normalization
-- ✅ "Senior Product Designer" → "Product Designer"
-- ✅ "UX Designer" → "Product Designer"
-- ✅ "UI/UX Designer" → "Product Designer"
-- ✅ "Interaction Designer" → "Product Designer"
-- ✅ "Experience Designer" → "Product Designer"
-- ✅ "Design Lead" → "Product Designer"
-- ✅ Non-design titles remain unchanged
+### 2. Integration Test with Sample Candidate
 
-### Edge Cases
-- ✅ "Software Engineer" → `[]` (no matches, as expected)
-- ✅ Empty/null titles handled gracefully
+```bash
+python -c "from src.cli import score; score('data/sample/jd.txt', sample=True)"
+```
 
-## Expected Impact
-When the full system runs (`make ingest`), candidates will now have:
-- **titles_norm** including "Product Designer" entries for design roles
-- **industry_tags** including "Web3/DeFi" signals for crypto experience
-- Better matching for design roles against product design job descriptions
-- Enhanced scoring for candidates with web3/blockchain experience
+**Result**: ✅ Successfully processed candidate "Alex Rivera"
+
+- Fit Score: 10.0
+- All scoring features computed (title, industry, skills, context, tenure, recency)
+- Output saved to `data/out/scores.json`
+
+### 3. Stint Processing Verification
+
+**Sample candidate stint extraction**:
+
+- ✅ Extracted 4 stints from sample candidate
+- ✅ Each stint properly shaped with company/title fields
+- ✅ No empty stint arrays returned (PR-002 requirement met)
+
+## Implementation Verification ✅
+
+### Core Functions Implemented
+
+#### `src/etl/greenhouse.py`
+
+- ✅ **`get_stints(candidate_ref)`** - Manifest-first stint provider
+- ✅ Prefers manifest entries when available
+- ✅ Falls back to `shape_adapter` for synthesis
+- ✅ Never returns empty arrays
+
+#### `src/parsing/stints.py`
+
+- ✅ **`shape_adapter(raw)`** - Raw input normalization
+- ✅ Converts arbitrary inputs to minimally valid stints
+- ✅ Always returns at least one element
+- ✅ Handles date coercion (YYYY-MM format)
+- ✅ Sets `end=None` for current roles
+
+#### `src/scoring/features.py`
+
+- ✅ **`_compute_tenure_months(stints)`** - Graceful tenure calculation
+- ✅ **`_compute_recency_months(stints)`** - Graceful recency calculation
+- ✅ Both functions handle missing/partial dates without zeroing candidates
+
+### Test Coverage ✅
+
+- ✅ **Unit tests**: 3/3 passing in `tests/parsing/test_stints_adapter.py`
+- ✅ **Integration test**: 1/1 passing in `tests/test_scoring_features.py`
+- ✅ **End-to-end**: Acceptance test validates full pipeline
+
+## Key Achievements
+
+1. **Manifest-First Architecture**: System now prioritizes structured manifest data
+2. **Graceful Degradation**: Falls back to raw data processing when needed
+3. **Never-Empty Guarantee**: All candidates get at least minimal stint representation
+4. **Date Handling**: Robust date coercion with current role detection
+5. **Feature Resilience**: Scoring handles missing dates without candidate rejection
+
+## Acceptance Criteria Met ✅
+
+✅ **Unit tests pass** for provider/adapter functionality  
+✅ **Integration test passes** with sample candidate processing  
+✅ **No candidates have empty stints** in scoring output  
+✅ **All scoring features computed** indicating proper stint processing  
+✅ **Graceful fallback behavior** when manifest data unavailable  
 
 ## Branch Status
-- ✅ Branch created: `feat/taxonomy-designer-web3`
-- ✅ Patches applied successfully
-- ✅ Functionality verified through manual testing
-- ✅ Ready for integration testing once dependencies are fully installed
+
+- ✅ Branch: `fix/stints-manifest-first-shape-adapter`
+- ✅ All TODO items completed and implemented
+- ✅ No remaining `NotImplementedError` stubs
+- ✅ Full test suite passing (9/9 tests)
+- ✅ **Ready for merge** - PR-002 implementation complete

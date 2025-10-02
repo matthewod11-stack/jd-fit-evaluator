@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: setup ingest score score-sample ui api health split-batch
+.PHONY: setup ingest score score-sample ui api health split-batch run-ui
 
 health:
 	@python -c "import importlib; [importlib.import_module(m) for m in ['typer','fastapi','streamlit','pydantic']]; print('OK: core deps present')"
@@ -22,13 +22,18 @@ ingest:
 	python -m src.cli ingest
 
 score:
-	python -m src.cli score --jd data/sample/jd.txt
+	python -m src.cli score data/sample/jd.txt
 
 score-sample:
-	python -m src.cli score --jd data/sample/jd.txt --sample
+	python -m src.cli score data/sample/jd.txt --sample
 
 ui:
 	streamlit run ui/app.py
+
+# Run Streamlit UI with project root on PYTHONPATH so absolute imports work
+.PHONY: run-ui
+run-ui:
+	PYTHONPATH=. streamlit run ui/app.py
 
 api:
 	uvicorn app.api:app --reload --host 0.0.0.0 --port 8000

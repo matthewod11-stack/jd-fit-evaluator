@@ -6,7 +6,17 @@ import sys
 from pathlib import Path
 from typing import Dict, Any
 import csv
-from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
+# -- Make 'ui' imports work when running this file directly via `streamlit run ui/app.py`
+try:
+    from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
+except ModuleNotFoundError:
+    import sys
+    from pathlib import Path
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+    # Retry import with project root on sys.path
+    from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
 
 # Add the project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))

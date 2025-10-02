@@ -1,27 +1,55 @@
-[
-  {
-    "candidate": "Alex Rivera",
-    "fit": 20.0,
-    "title": 0.0,
-    "industry": 0.0,
-    "skills": 0.0,
-    "context": 1.0,
-    "tenure": 0.0,
-    "recency": 1.0,
-    "bonus": 0.0,
-    "why": [
-      "Titles match score: 0.00 (last level gap soft-penalized)",
-      "Industry relevance: 0.00",
-      "Skills semantic sim: 0.00",
-      "Context alignment: 1.00",
-      "Tenure (avg 0.0 mo, last 0.0 mo): 0.00",
-      "Recency: 1.00"
-    ],
-    "rationale": [
-      "Has recent Web3/DeFi stint (\u22643y): evidence 'defi'",
-      "Wallet/smart contract exposure: evidence 'wallet'",
-      "Usability testing experience: evidence 'usability testing'",
-      "Title aligned to Product/UX Designer: score=0"
-    ]
-  }
-]
+{
+  "artifact": {
+    "version": "scores.v2",
+    "generated_at": "2025-10-02T03:07:40+00:00",
+    "jd_label": "jd",
+    "source_jd": "data/sample/jd.txt",
+    "candidate_count": 1,
+    "embed_config": {
+      "backend": "ollama",
+      "model": "nomic-embed-text",
+      "dim": 768,
+      "ctx": 4096,
+      "cache_path": ".cache/embeddings.db"
+    }
+  },
+  "results": [
+    {
+      "candidate_id": "demo-0001",
+      "candidate": "Alex Rivera",
+      "name": "Alex Rivera",
+      "name_norm": "alex-rivera",
+      "fit": 10.0,
+      "why": [
+        "Titles match score: 0.00 (last level gap soft-penalized)",
+        "Industry relevance: 0.00",
+        "Skills semantic sim: 0.00",
+        "Context alignment: 1.00",
+        "Tenure (avg 0.0 mo, last 0.0 mo): 0.00",
+        "Recency: 0.00"
+      ],
+      "rationale": [
+        "Has recent Web3/DeFi stint (\u22643y): evidence 'defi'",
+        "Wallet/smart contract exposure: evidence 'wallet'",
+        "Usability testing experience: evidence 'usability testing'",
+        "Title aligned to Product/UX Designer: score=0"
+      ],
+      "subs": {
+        "title": 0.0,
+        "industry": 0.0,
+        "skills": 0.0,
+        "context": 1.0,
+        "tenure": 0.0,
+        "recency": 0.0,
+        "bonus": 0.0
+      },
+      "title": 0.0,
+      "industry": 0.0,
+      "skills": 0.0,
+      "context": 1.0,
+      "tenure": 0.0,
+      "recency": 0.0,
+      "bonus": 0.0
+    }
+  ]
+}

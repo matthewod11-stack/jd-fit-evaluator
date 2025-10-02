@@ -57,7 +57,7 @@ from .scoring.finalize import compute_fit, build_rationale
 from .etl.greenhouse import ingest_job
 
 # Typer app (avoid Annotated to sidestep Typer/Click parsing edge cases)
-app = typer.Typer(help="JD-anchored candidate evaluator CLI")
+app = typer.Typer(help="JD-anchored candidate evaluator CLI", rich_markup_mode=None)
 
 def load_sample_candidate() -> dict:
     # Check for Web3 designer candidate first, fallback to default
