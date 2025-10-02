@@ -1,7 +1,7 @@
 {
   "artifact": {
     "version": "scores.v2",
-    "generated_at": "2025-10-02T16:10:55+00:00",
+    "generated_at": "2025-10-02T16:29:46+00:00",
     "jd_label": "jd-pd-web3",
     "source_jd": "samples/jd_pd_web3.txt",
     "candidate_count": 1,
