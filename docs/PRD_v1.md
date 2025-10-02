@@ -11,6 +11,7 @@
 ## 1. Vision & Goals
 
 Recruiters and HR teams waste time manually reviewing resumes. We want an AI-assisted system that:
+
 - Pulls candidates from **Greenhouse** automatically.
 - Compares each applicant **against the job description (JD)**, not against each other.  
 - Produces a **Fit Score (0–100)** plus a **rationale (“why”)**.  
@@ -84,7 +85,6 @@ Recruiters and HR teams waste time manually reviewing resumes. We want an AI-ass
 
 ## 4. Technical Architecture
 
-```
 Greenhouse ETL → Resume Parsing → Stint Extractor → Taxonomy Mapping
     ↓
 Candidate JSON (normalized)
@@ -96,7 +96,6 @@ Fit Score (rule-based blend)
 [Optional Training Model → Prob(Advance)]
     ↓
 Final Output (score + rationale)
-```
 
 **Stack:**  
 

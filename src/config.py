@@ -13,6 +13,10 @@ class Settings(BaseModel):
     embed_model: str = os.getenv("EMBED_MODEL", "nomic-embed-text")
     embed_dim: int = int(os.getenv("EMBED_DIM", "768"))
     embed_cache_path: str = os.getenv("EMBED_CACHE_PATH", ".cache/embeddings.db")
+    
+    # LLM stint extraction settings
+    use_llm_stints: bool = bool(int(os.getenv("USE_LLM_STINTS", "1")))
+    llm_model: str = os.getenv("LLM_MODEL", "llama3:8b")
 
     @field_validator("embed_backend")
     @classmethod
@@ -42,3 +46,7 @@ EMBED_BACKEND = settings.embed_backend
 EMBED_MODEL = settings.embed_model
 EMBED_DIM = settings.embed_dim
 EMBED_CACHE_PATH = settings.embed_cache_path
+
+# LLM stint extraction config
+USE_LLM_STINTS = settings.use_llm_stints
+LLM_MODEL = settings.llm_model

@@ -10,6 +10,7 @@
 ## 1. Vision & Goals
 
 Recruiters and HR teams waste time manually reviewing resumes. We want an AI-assisted system that:  
+
 - Pulls candidates from **local resume bundles** (multi-resume PDFs + manifest). Greenhouse and other ATS integrations may return post-MVP.  
 - Compares each applicant **against the job description (JD)**, not against each other.  
 - Produces a **Fit Score (0–100)** plus a **rationale (“why”)**.  
@@ -36,6 +37,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 
 **Title:** Senior Product Designer (Web3/DeFi)  
 **Key Responsibilities:**  
+
 - Design end-to-end flows for DeFi orchestration.  
 - Lead usability testing and synthesize findings.  
 - Translate DeFi complexity into clear interactions.  
@@ -43,6 +45,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 - Partner on AI-driven design enhancements.  
 
 **Requirements:**  
+
 - 5+ years UX design; 2+ in Web3 (DeFi strongly preferred).  
 - Strong knowledge of wallets, smart contracts, protocols.  
 - Hands-on usability testing.  
@@ -56,6 +59,7 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 **Title/Role:** Product Designer, UX Designer, Senior Designer, Senior Product Designer.  
 **Industry:** Web3, DeFi, Crypto, Fintech, SaaS.  
 **Skills/Experience:**  
+
 - Wallet flows, smart contracts, decentralized protocols.  
 - Usability testing, end-to-end UX flows, DeFi strategy design.  
 - Independent design ownership, cross-functional collaboration.  
@@ -92,17 +96,20 @@ These signals must be **baked into the taxonomy and JD profile extraction** for 
 ## 7. Milestones
 
 **MVP (Agoric Senior Product Designer role):**  
+
 - Parse 200 candidates via local PDF → manifest ingestion.  
 - Apply JD-aware scoring with DeFi/Web3 signals.  
 - Output CSV/JSON with Fit Scores + rationale.  
 - Deliver UI with JD preloaded.  
 
 **Next:**  
+
 - Expand taxonomy (wallet providers, protocol ecosystems).  
 - Improve stint parsing accuracy.  
 - Begin training with labels.  
 
 **Future:**  
+
 - Re-enable ATS/Greenhouse integrations post-MVP.  
 - Candidate_id-based training.  
 - ATS note exports.  

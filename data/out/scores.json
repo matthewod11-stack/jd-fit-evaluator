@@ -1,9 +1,9 @@
 {
   "artifact": {
     "version": "scores.v2",
-    "generated_at": "2025-10-02T03:07:40+00:00",
-    "jd_label": "jd",
-    "source_jd": "data/sample/jd.txt",
+    "generated_at": "2025-10-02T14:49:13+00:00",
+    "jd_label": "agoric-senior-product-designer-jd",
+    "source_jd": "docs/Agoric_Senior_Product_Designer_JD.txt",
     "candidate_count": 1,
     "embed_config": {
       "backend": "ollama",
