@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Dict, Any
 import csv
+import html
 # -- Make 'ui' imports work when running this file directly via `streamlit run ui/app.py`
 try:
     from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
@@ -21,6 +22,9 @@ except ModuleNotFoundError:
 # Add the project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.scoring.finalize import compute_fit
+
+DEFAULT_MIN_SCORE = 35
+DEFAULT_PAGE_SIZE = 50
 
 
 def _candidate_label(source: Dict[str, Any]) -> str:
@@ -50,7 +54,7 @@ def _normalize_saved_row(row: Dict[str, Any]) -> Dict[str, Any]:
     subs_in = row.get("subs") if isinstance(row.get("subs"), dict) else {}
     subs_out: Dict[str, float] = {}
     for key in SUB_COLUMNS:
-        subs_out[key] = _coerce_score(row.get(key, subs_in.get(key)))
+        subs_out[key] = _coerce_score(row.get(key, subs_in.get(key))) # pyright: ignore[reportOptionalMemberAccess]
 
     fit_value = row.get("fit", row.get("fit_score"))
     fit = _coerce_score(fit_value)
@@ -130,6 +134,103 @@ def _format_result_row(candidate: dict, fit_result: dict) -> dict:
 
     normalized = _normalize_saved_row(base)
     return normalized
+
+
+def _pretty_signal_name(name: str) -> str:
+    text = str(name or "").replace("_", " ").replace("-", " ").strip()
+    if not text:
+        return "Signal"
+    return " ".join(part.capitalize() if part else "" for part in text.split())
+
+
+def build_confidence_badges_payload(signals: Any) -> list[dict[str, Any]]:
+    badges: list[dict[str, Any]] = []
+    if not isinstance(signals, dict):
+        return badges
+
+    for key, raw in signals.items():
+        if raw in (None, ""):
+            continue
+
+        confidence_value = None
+        label_hint = None
+
+        if isinstance(raw, dict):
+            label_hint = raw.get("label") or raw.get("text") or raw.get("name")
+            for candidate_key in ("confidence", "score", "value"):
+                candidate_value = raw.get(candidate_key)
+                if candidate_value is not None:
+                    confidence_value = candidate_value
+                    break
+            if confidence_value is None:
+                continue
+        else:
+            confidence_value = raw
+
+        try:
+            confidence_float = float(confidence_value)
+        except (TypeError, ValueError):
+            continue
+
+        confidence = max(0.0, min(1.0, confidence_float))
+        label_text = label_hint or _pretty_signal_name(key)
+        badges.append({
+            "name": str(key),
+            "confidence": confidence,
+            "label": f"{label_text} • {confidence:.2f}",
+        })
+
+    badges.sort(key=lambda item: item["confidence"], reverse=True)
+    return badges
+
+
+def _confidence_strength(value: float) -> str:
+    if value >= 0.75:
+        return "high"
+    if value >= 0.5:
+        return "medium"
+    return "low"
+
+
+def render_confidence_badges(badges: list[dict[str, Any]]) -> None:
+    if not badges:
+        return
+
+    if not st.session_state.get("_confidence_badges_css_injected", False):
+        st.markdown(
+            """
+            <style>
+                .confidence-badge-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.4rem 0 0.6rem; }
+                .confidence-badge { padding: 0.18rem 0.55rem; border-radius: 999px; font-size: 0.85rem; border: 1px solid rgba(13, 110, 253, 0.28); background-color: rgba(13, 110, 253, 0.12); color: #0d6efd; }
+                .confidence-badge[data-strength="medium"] { border-color: rgba(255, 193, 7, 0.35); background-color: rgba(255, 193, 7, 0.18); color: #967000; }
+                .confidence-badge[data-strength="low"] { border-color: rgba(220, 53, 69, 0.35); background-color: rgba(220, 53, 69, 0.15); color: #b02a37; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.session_state["_confidence_badges_css_injected"] = True
+
+    parts: list[str] = []
+    for badge in badges:
+        confidence = float(badge.get("confidence", 0.0) or 0.0)
+        label = badge.get("label") or _pretty_signal_name(badge.get("name", ""))
+        strength = _confidence_strength(confidence)
+        parts.append(
+            (
+                "<span class='confidence-badge' data-strength='{strength}' title='{title}'>"
+                "{label}</span>"
+            ).format(
+                strength=strength,
+                title=html.escape(f"{badge.get('name', '')} • {confidence:.2f}"),
+                label=html.escape(label),
+            )
+        )
+
+    st.markdown(
+        "<div class='confidence-badge-row'>{}</div>".format("".join(parts)),
+        unsafe_allow_html=True,
+    )
+
 
 def parse_role(jd_text: str) -> dict:
     lines = [l.strip("-• ").strip() for l in jd_text.splitlines() if l.strip()]
@@ -229,6 +330,13 @@ if run:
     except Exception as e:
         st.error(f"Error: {e}")
 
+confidence_badges_map: dict[int, list[dict[str, Any]]] = {}
+for row in st.session_state['results']:
+    signals_payload = row.get("signals") or row.get("subs") or {}
+    badges = build_confidence_badges_payload(signals_payload)
+    if badges:
+        confidence_badges_map[id(row)] = badges
+
 st.subheader("Results")
 table_rows = [{key: row.get(key) for key in TABLE_COLUMNS}
               for row in st.session_state['results']]
@@ -236,6 +344,9 @@ if table_rows:
     st.table(table_rows)
 for r in st.session_state['results']:
     st.markdown(f"### {r['candidate']} — Fit **{r['fit']}**")
+    badges = confidence_badges_map.get(id(r))
+    if badges:
+        render_confidence_badges(badges)
     st.write(r['why'])
     st.json(r['subs'])
 
