@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,6 +10,20 @@ from typing import Optional
 import typer
 
 ARTIFACT_VERSION = "scores.v2"
+
+LEGACY_CSV_HEADERS = [
+    "candidate_id",
+    "name",
+    "email",
+    "title_canonical",
+    "industry_canonical",
+    "score",
+    "titles_score",
+    "industry_score",
+    "tenure_score",
+    "skills_score",
+    "context_score",
+]
 
 
 def _slugify(value: str) -> str:
@@ -42,6 +57,28 @@ def _make_artifact_header(jd_path: str, *, candidate_count: int) -> dict:
         "candidate_count": candidate_count,
         "embed_config": embed_cfg,
     }
+
+
+def _first_non_empty_string(*candidates) -> str:
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        if isinstance(candidate, str):
+            value = candidate.strip()
+            if value:
+                return value
+        elif isinstance(candidate, dict):
+            for key in ("value", "label", "text", "name"):
+                if key in candidate:
+                    nested = _first_non_empty_string(candidate[key])
+                    if nested:
+                        return nested
+        elif isinstance(candidate, (list, tuple)):
+            for item in candidate:
+                nested = _first_non_empty_string(item)
+                if nested:
+                    return nested
+    return ""
 
 
 def _name_norm(candidate: dict) -> str:
@@ -136,11 +173,45 @@ def score(
         enriched_row.update(subs)
         rows.append(enriched_row)
 
-        legacy_flat = {"candidate": display_name, "fit": res["fit"], **subs, "why": res["why"], "rationale": rationale}
-        if candidate_id is not None:
-            legacy_flat["candidate_id"] = candidate_id
-        legacy_flat["name_norm"] = enriched_row["name_norm"]
-        legacy_rows.append(legacy_flat)
+        # Build a compact legacy-friendly row that matches LEGACY_CSV_HEADERS.
+        # helper to safely extract a score value that may be a float or a dict
+        def _score_of(key: str):
+            v = subs.get(key)
+            if isinstance(v, dict):
+                return v.get("score", "")
+            if v is None:
+                return ""
+            return v
+
+        title_canonical = _first_non_empty_string(
+            subs.get("title"),
+            subs.get("title_norm"),
+            cand.get("title"),
+            [stint.get("title") for stint in cand.get("stints", [])],
+        )
+        industry_canonical = _first_non_empty_string(
+            subs.get("industry"),
+            subs.get("industry_norm"),
+            cand.get("industry"),
+            [stint.get("industry") for stint in cand.get("stints", [])],
+        )
+
+        legacy_row = {
+            "candidate_id": candidate_id if candidate_id is not None else "",
+            "name": display_name,
+            "email": cand.get("email", ""),
+            # canonical fields - prefer explicit keys in `subs`, fall back to candidate metadata
+            "title_canonical": title_canonical,
+            "industry_canonical": industry_canonical,
+            "score": res.get("fit", ""),
+            # signal-level numeric scores (expected floats) — try plural key then singular
+            "titles_score": _score_of("titles") or _score_of("title"),
+            "industry_score": _score_of("industry"),
+            "tenure_score": _score_of("tenure"),
+            "skills_score": _score_of("skills"),
+            "context_score": _score_of("context"),
+        }
+        legacy_rows.append(legacy_row)
 
         print(f"{display_name:25s}  Fit={res['fit']:5.1f}  Why: " + " | ".join(res["why"]))
 
@@ -152,12 +223,26 @@ def score(
     scores_path.write_text(json.dumps(payload, indent=2))
     legacy_path.write_text(json.dumps(legacy_rows, indent=2))
     print(f"Saved scores to {scores_path} (legacy list: {legacy_path})")
+
+    # Maintain legacy CSV artifact in repo-root `out/` for snapshot tests.
+    legacy_csv_root = Path("out")
+    legacy_csv_root.mkdir(parents=True, exist_ok=True)
+    legacy_csv_path = legacy_csv_root / "scores.csv"
+    with legacy_csv_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=LEGACY_CSV_HEADERS)
+        writer.writeheader()
+        for row in legacy_rows:
+            payload_row = {}
+            for key in LEGACY_CSV_HEADERS:
+                value = row.get(key)
+                payload_row[key] = "" if value is None else value
+            writer.writerow(payload_row)
+    print(f"Saved legacy CSV to {legacy_csv_path}")
+
     # Also write a consolidated rationale file expected by some acceptance scripts
     # (legacy acceptance checks look for `out/rationales.md`). We write into
     # repository-root `out/` to keep that expectation stable.
-    rationales_root = Path("out")
-    rationales_root.mkdir(parents=True, exist_ok=True)
-    rationales_path = rationales_root / "rationales.md"
+    rationales_path = legacy_csv_root / "rationales.md"
     with rationales_path.open("w", encoding="utf-8") as rf:
         for r in rows:
             # Each `rationale` may be a string or a list of lines/blocks. Normalize
