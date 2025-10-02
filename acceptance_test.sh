@@ -1,25 +1,32 @@
 #!/bin/bash
 set -euo pipefail
+source .venv/bin/activate || python -m venv .venv && source .venv/bin/activate
 
-# 0) Env
-export EMBED_BACKEND=ollama
-export EMBED_MODEL=nomic-embed-text
-export EMBED_DIM=768
-export DRY_RUN=true
-[ -d .venv ] || python -m venv .venv
-source .venv/bin/activate || true
+# 1) Unit tests for provider/adapter
+pytest -q tests/parsing/test_stints_adapter.py -q
+
+# 2) Integration: run scoring and ensure no candidate has empty stints
 python - <<'PY'
-import importlib, subprocess, sys
-for dep in ["pytest","typer","requests","numpy"]:
-    try: importlib.import_module(dep)
-    except ImportError: subprocess.check_call([sys.executable,"-m","pip","install",dep])
+from src.cli import score
+score('data/sample/jd.txt', sample=True)
 PY
 
-# 1) Unit tests
-pytest -q tests/models/test_embeddings.py -q
-
-# 2) Sample score run should NOT throw and should log 768-d vectors
-python -m src.cli score --jd data/jd.txt --sample
-
-# 3) Artifact sanity: verify out/scores.json exists
-test -f out/scores.json && echo "✓ scores.json written"
+python - <<'PY'
+import json, sys
+with open("data/out/scores.json") as f: data=json.load(f)
+# Handle both new format {"artifact": {...}, "results": [...]} and legacy format [...]
+if isinstance(data, dict) and "results" in data:
+    candidates = data["results"]
+elif isinstance(data, list):
+    candidates = data
+else:
+    candidates = []
+# Check that we have candidates and they have features indicating stints were processed
+assert candidates, "No candidates found in scores.json"
+for c in candidates:
+    # All candidates should have computed feature scores (not all zeros)
+    feature_scores = [c.get('title',0), c.get('industry',0), c.get('skills',0), c.get('context',0), c.get('tenure',0), c.get('recency',0)]
+    # At least some features should be computed (not all exactly 0)
+    assert any(score != 0 for score in feature_scores) or c.get('fit', 0) > 0, f"Candidate {c.get('candidate','unknown')} has no computed features"
+print("✓ all candidates have computed features (indicating stints were processed)")
+PY

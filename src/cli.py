@@ -1,11 +1,62 @@
+from __future__ import annotations
 
-import json, os, sys, typer, glob
+import re
+from datetime import datetime, timezone
 from pathlib import Path
+import json
+import glob
 from typing import Optional
+import typer
+
+ARTIFACT_VERSION = "scores.v2"
+
+
+def _slugify(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", value.strip().lower())
+    return normalized.strip("-")
+
+
+def _infer_jd_label(jd_path: str) -> str:
+    candidate = Path(jd_path).stem or Path(jd_path).name
+    slug = _slugify(candidate)
+    return slug or "jd"
+
+
+def _make_artifact_header(jd_path: str, *, candidate_count: int) -> dict:
+    embed_cfg = {
+        "backend": settings.embed_backend,
+        "model": settings.embed_model,
+        "dim": settings.embed_dim,
+        "ctx": settings.embed_ctx,
+    }
+    if settings.embed_model_path:
+        embed_cfg["model_path"] = settings.embed_model_path
+    if settings.embed_cache_path:
+        embed_cfg["cache_path"] = settings.embed_cache_path
+
+    return {
+        "version": ARTIFACT_VERSION,
+        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "jd_label": _infer_jd_label(jd_path),
+        "source_jd": str(Path(jd_path)),
+        "candidate_count": candidate_count,
+        "embed_config": embed_cfg,
+    }
+
+
+def _name_norm(candidate: dict) -> str:
+    raw = candidate.get("name") or candidate.get("candidate") or ""
+    slug = _slugify(raw)
+    if slug:
+        return slug
+    cid = candidate.get("candidate_id") or candidate.get("id")
+    return _slugify(str(cid)) if cid else ""
+
 from .config import settings
 from .scoring.finalize import compute_fit, build_rationale
 from .etl.greenhouse import ingest_job
 
+# Typer app (avoid Annotated to sidestep Typer/Click parsing edge cases)
 app = typer.Typer(help="JD-anchored candidate evaluator CLI")
 
 def load_sample_candidate() -> dict:
@@ -35,7 +86,10 @@ def load_role_from_jd(jd_path: str) -> dict:
     return role
 
 @app.command()
-def score(jd: str, sample: bool = False):
+def score(
+    jd: str = typer.Argument(..., help="Path to job description file"),
+    sample: bool = typer.Option(False, "--sample", is_flag=True, help="Use sample candidate data"),
+):
     role = load_role_from_jd(jd)
     candidates = []
     if sample:
@@ -47,8 +101,10 @@ def score(jd: str, sample: bool = False):
         typer.echo("No candidates found. Use --sample or run `make ingest`.")
         raise typer.Exit(1)
 
-    out_dir = Path("data/out"); out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = Path("data/out")
+    out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
+    legacy_rows = []
     for cand in candidates:
         res = compute_fit(cand, role)
         
@@ -63,14 +119,45 @@ def score(jd: str, sample: bool = False):
         
         # Build rationale
         rationale = build_rationale(res["subs"], jd_terms, resume_terms)
-        
-        rows.append({"candidate": cand.get("name", "unknown"), "fit": res["fit"], **res["subs"], "why": res["why"], "rationale": rationale})
-        print(f"{cand.get('name','unknown'):25s}  Fit={res['fit']:5.1f}  Why: " + " | ".join(res["why"]))
-    Path(out_dir/"scores.json").write_text(json.dumps(rows, indent=2))
-    print(f"Saved scores to {out_dir/'scores.json'}")
+        subs = res["subs"]
+        display_name = cand.get("name", "unknown")
+        candidate_id = cand.get("candidate_id") or cand.get("id")
+
+        enriched_row = {
+            "candidate_id": candidate_id,
+            "candidate": display_name,
+            "name": display_name,
+            "name_norm": _name_norm(cand),
+            "fit": res["fit"],
+            "why": res["why"],
+            "rationale": rationale,
+            "subs": subs,
+        }
+        enriched_row.update(subs)
+        rows.append(enriched_row)
+
+        legacy_flat = {"candidate": display_name, "fit": res["fit"], **subs, "why": res["why"], "rationale": rationale}
+        if candidate_id is not None:
+            legacy_flat["candidate_id"] = candidate_id
+        legacy_flat["name_norm"] = enriched_row["name_norm"]
+        legacy_rows.append(legacy_flat)
+
+        print(f"{display_name:25s}  Fit={res['fit']:5.1f}  Why: " + " | ".join(res["why"]))
+
+    artifact = _make_artifact_header(jd, candidate_count=len(rows))
+    payload = {"artifact": artifact, "results": rows}
+
+    scores_path = out_dir/"scores.json"
+    legacy_path = out_dir/"scores.legacy.json"
+    scores_path.write_text(json.dumps(payload, indent=2))
+    legacy_path.write_text(json.dumps(legacy_rows, indent=2))
+    print(f"Saved scores to {scores_path} (legacy list: {legacy_path})")
 
 @app.command()
-def ingest(job_id: Optional[str] = None, out_dir: str = "data/ingest"):
+def ingest(
+    job_id: Optional[str] = typer.Option(None, "--job-id", help="Greenhouse job ID"),
+    out_dir: str = typer.Option("data/ingest", "--out-dir", help="Output directory for ingested data"),
+):
     jid = job_id or settings.gh_job_id
     if not (settings.gh_token and jid):
         typer.echo("Error: GH_TOKEN and GH_JOB_ID must be set (either via .env or --job-id).")
@@ -78,15 +165,38 @@ def ingest(job_id: Optional[str] = None, out_dir: str = "data/ingest"):
     files = ingest_job(jid, out_dir=out_dir)
     typer.echo(f"Ingested {len(files)} candidates → {out_dir}")
 
-@app.command()
-def train(jd: str = "data/sample/jd.txt", labels: str = "data/labels.csv", scores: str = "data/out/scores.json", out: str = "models/trained/model.pkl"):
+def train_impl(
+    jd: str = "data/sample/jd.txt",
+    labels: str = "data/labels.csv", 
+    scores: str = "data/out/scores.json",
+    out: str = "models/trained/model.pkl"
+):
+    """Implementation function that can be called directly or from CLI."""
     # Ensure features exist; if not, run score first (sample or ingested)
     if not Path(scores).exists():
-        typer.echo("Features file not found; run `make score` (or score --sample) first to build data/out/scores.json.")
-        raise typer.Exit(1)
+        print("Features file not found; run `make score` (or score --sample) first to build data/out/scores.json.")
+        raise SystemExit(1)
+    labels_path = Path(labels)
+    if not labels_path.exists() or labels_path.stat().st_size == 0:
+        print("No labels found; skipping training.")
+        raise SystemExit(0)
     from .training.train import train as _train
     out_path, meta = _train(scores, labels, out)
-    typer.echo(f"Trained model → {out_path}  (n={meta['n']}, positive rate={meta['pos_rate']:.2f})")
+    print(f"Trained model → {out_path}  (n={meta['n']}, positive rate={meta['pos_rate']:.2f})")
+    return out_path, meta
 
-if __name__ == '__main__':
+@app.command()
+def train(
+    jd: str = typer.Option("data/sample/jd.txt", "--jd", help="Path to job description file"),
+    labels: str = typer.Option("data/labels.csv", "--labels", help="Path to labels CSV file"),
+    scores: str = typer.Option("data/out/scores.json", "--scores", help="Path to scores JSON file"),
+    out: str = typer.Option("models/trained/model.pkl", "--out", help="Output path for trained model"),
+):
+    """CLI command wrapper for train_impl."""
+    return train_impl(jd, labels, scores, out)
+
+def main():
     app()
+
+if __name__ == "__main__":
+    main()
