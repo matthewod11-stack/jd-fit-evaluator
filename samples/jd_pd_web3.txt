@@ -1,0 +1,36 @@
+Title: Senior Product Designer (Web3/DeFi)
+Level: Senior
+Industries: web3, defi, crypto, fintech, saas
+
+About Agoric:
+Agoric is launching a new product (Ymax) that leverages orchestration technology to deliver an intelligent DeFi command center. Ymax enables users to create and manage positions across multiple pools, protocols, and networks with a single signature. Agoric is also exploring AI/LLM-driven optimizations to improve user outcomes.
+
+Role Overview:
+Experienced Product Designer with expertise in Web3 and DeFi products. Collaborate closely with product, engineering, and marketing teams. Apply strong user-centered design practices to shape first versions of Ymax, run usability testing, and refine seamless DeFi user experiences.
+
+Key Responsibilities:
+- Collaborate with product, engineering, and marketing to design end-to-end user flows.
+- Lead usability testing sessions and synthesize findings into actionable improvements.
+- Translate complex DeFi opportunities into clear, approachable interactions for end-users.
+- Design workflows for executing DeFi strategies across multiple networks and protocols through a single signature.
+- Partner with the team to create AI-driven experiences that surface intelligent optimizations.
+- Work independently to propose and validate design solutions.
+
+Requirements:
+- 5+ years of UX/Product Design experience; 2+ years in crypto/Web3 (DeFi strongly preferred).
+- Strong understanding of crypto wallet flows, smart contracts, and decentralized protocols.
+- Experience planning and running usability testing independently.
+- Excellent collaboration skills with product, engineering, and marketing teams.
+- Available to work US-based hours (ET or PT) in a remote-first team environment.
+
+Must-have:
+- 5+ years UX/Product Design.
+- 2+ years Web3/crypto design (DeFi strongly preferred).
+- Hands-on usability testing.
+- Strong wallet/smart contract/protocol understanding.
+- Collaboration across cross-functional teams.
+
+Nice-to-have:
+- Experience designing AI/LLM-powered products.
+- Experience in fintech or SaaS in addition to Web3.
+- Familiarity with orchestration technology and DeFi strategy design.
