@@ -29,3 +29,9 @@ rename:
 
 parse:
 	python -m jd_fit_evaluator.cli parse resumes_raw -o out/parsed --use-llm
+
+ingest-manifest:
+	python -m jd_fit_evaluator.cli ingest-manifest data/test/test_manifest.csv -o data/ingest --verbose
+
+score-mvp:
+	python -m jd_fit_evaluator.cli parse data/test -o data/parsed && python -m jd_fit_evaluator.cli score data/parsed --role product --explain -o data/out

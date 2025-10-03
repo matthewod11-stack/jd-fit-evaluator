@@ -105,5 +105,36 @@ def pipeline(input_dir: str, role: str = typer.Option(...,"--role","-r"), out_di
     write_scores(results, out_dir)
     typer.echo(f"Pipeline complete! Renamed, parsed {len(parsed)} candidates, and wrote scores to {out_dir}")
 
+@app.command()
+def ingest_manifest(
+    manifest: str = typer.Argument(..., help="Path to candidate_manifest.csv"),
+    out_dir: Path = typer.Option(Path("data/ingest"), "--out", "-o", help="Output dir for normalized candidates"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+):
+    """Ingest a CSV manifest into normalized candidates.jsonl for scoring."""
+    import logging
+    from jd_fit_evaluator.etl.manifest_ingest import ingest_manifest_rows, ManifestIngestionError
+    
+    # Configure logging
+    log_level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(level=log_level, format='%(levelname)s: %(message)s')
+    log = logging.getLogger(__name__)
+    
+    try:
+        result = ingest_manifest_rows(manifest, str(out_dir))
+        typer.echo(f"✅ Successfully ingested {result['candidates_written']} candidates")
+        typer.echo(f"📄 Output: {result['output_file']}")
+        typer.echo(f"📊 Metadata: {result['metadata_file']}")
+        
+    except ManifestIngestionError as e:
+        typer.echo(f"❌ Manifest ingestion failed: {e}", err=True)
+        if verbose:
+            log.exception("Detailed error information:")
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.echo(f"❌ Unexpected error: {e}", err=True)
+        log.exception("Unexpected error during manifest ingestion:")
+        raise typer.Exit(1)
+
 if __name__ == "__main__":
     app()
