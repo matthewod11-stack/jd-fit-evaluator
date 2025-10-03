@@ -158,19 +158,49 @@ class DeterministicFallbackEmbedder:
 
 class OllamaEmbedder:
     """Legacy compatibility - Ollama embeddings."""
-    
+
     def __init__(self, model: str = "nomic-embed-text", dim: int = 768, cache_path: str = ".cache/embeddings.db"):
         self.model = model
         self.dim = dim
         self.cache_path = cache_path
-    
+        self.provider = OllamaProvider(model)
+
     def embed_text(self, text: str) -> list[float]:
         """Single text embedding via Ollama."""
-        result = embed_texts([text], self.cache_path)
-        return result[0] if result else []
-    
+        cached = get_cached(self.cache_path, "ollama", self.model, [text])
+        if cached[text] is not None:
+            vector = cached[text]
+        else:
+            vectors = self.provider.embed_batch([text])
+            vector = vectors[0]
+            put_cached(self.cache_path, "ollama", self.model, {text: vector})
+        # Ensure vector matches expected dimension
+        if len(vector) > self.dim:
+            return vector[:self.dim]
+        elif len(vector) < self.dim:
+            return vector + [0.0] * (self.dim - len(vector))
+        return vector
+
     def embed(self, texts: list[str]) -> list[list[float]]:
-        return embed_texts(texts, self.cache_path)
+        cached = get_cached(self.cache_path, "ollama", self.model, texts)
+        to_fetch = [t for t in texts if cached[t] is None]
+        if to_fetch:
+            fresh_vectors = self.provider.embed_batch(to_fetch)
+            vectors_dict = dict(zip(to_fetch, fresh_vectors))
+            put_cached(self.cache_path, "ollama", self.model, vectors_dict)
+        else:
+            vectors_dict = {}
+        # Combine cached and fresh vectors, ensure dimensions match
+        result = []
+        for text in texts:
+            vector = cached[text] if cached[text] is not None else vectors_dict[text]
+            if len(vector) > self.dim:
+                result.append(vector[:self.dim])
+            elif len(vector) < self.dim:
+                result.append(vector + [0.0] * (self.dim - len(vector)))
+            else:
+                result.append(vector)
+        return result
 
 def _cosine(a: Iterable[float], b: Iterable[float]) -> float:
     """Compute cosine similarity between two vectors."""

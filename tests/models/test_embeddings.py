@@ -18,20 +18,19 @@ def test_shape_and_dtype_ollama_embedder(monkeypatch, tmp_path):
     def _mock_post(url, json, timeout):
         return _MockResponse()
 
-    monkeypatch.setattr("jd_fit_evaluator.models.embeddings.requests.post", _mock_post)
+    monkeypatch.setattr("requests.post", _mock_post)
 
     embedder = OllamaEmbedder(
         model="test-model",
         dim=dim,
         cache_path=str(tmp_path / "embeddings.db"),
-        timeout=1.0,
     )
 
     result = embedder.embed_text("hello world")
 
-    assert isinstance(result, np.ndarray)
-    assert result.shape == (dim,)
-    assert result.dtype == np.float64
+    assert isinstance(result, list)
+    assert len(result) == dim
+    assert all(isinstance(x, float) for x in result)
     assert np.allclose(result, vector)
 
 

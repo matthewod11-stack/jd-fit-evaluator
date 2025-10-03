@@ -14,21 +14,25 @@ ManifestRow = manifest_schema.ManifestRow
 coerce_row = manifest_schema.coerce_row
 
 
-def test_minimal_valid_row_coerces():
+def test_minimal_valid_row_coerces(tmp_path):
     """PR-08: Minimal valid input should coerce without errors."""
-    raw = {"candidate_id": "123", "resume_path": "resumes/a.pdf"}
+    # Create a dummy PDF file for validation
+    test_pdf = tmp_path / "a.pdf"
+    test_pdf.write_bytes(b"%PDF-1.4\n")
+
+    raw = {"candidate_id": "123", "resume_path": str(test_pdf)}
     row = coerce_row(raw)
     assert isinstance(row, ManifestRow)
     assert row.candidate_id == "123"
-    assert row.resume_path.endswith("a.pdf")
+    assert row.source_path.endswith("a.pdf")
 
 
 @pytest.mark.parametrize(
     "bad",
     [
         {},  # missing all
-        {"candidate_id": "x"},  # missing resume_path
-        {"resume_path": "resumes/a.pdf"},  # missing candidate_id
+        {"candidate_id": "x"},  # missing source_path
+        {"source_path": "nonexistent.pdf"},  # missing candidate_id and invalid path
     ],
 )
 def test_missing_required_fields_raise_or_tag(bad: Dict[str, Any]):

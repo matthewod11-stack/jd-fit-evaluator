@@ -66,9 +66,20 @@ def test_hash_function():
     assert len(hash1) == 16  # Hash should be 16 characters
 
 
-def test_extract_stints_llm_without_ollama():
+def test_extract_stints_llm_without_ollama(monkeypatch):
     """Test that extract_stints_llm raises HTTPError when Ollama is not running."""
     from requests.exceptions import HTTPError
+    import requests
+
+    # Mock requests.post to simulate Ollama not running
+    def mock_post(*args, **kwargs):
+        response = requests.Response()
+        response.status_code = 404
+        response._content = b'{"error": "Not Found"}'
+        return response
+
+    monkeypatch.setattr("requests.post", mock_post)
+
     with pytest.raises(HTTPError, match="404 Client Error"):
         extract_stints_llm("Some resume text")
 

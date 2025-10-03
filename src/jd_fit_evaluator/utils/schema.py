@@ -38,10 +38,23 @@ def coerce_to_canonical(obj) -> CanonicalScore:
 
 def write_scores(items: Iterable[CanonicalScore], out_dir: pathlib.Path):
     out_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Convert to list so we can iterate multiple times
+    items_list = list(items)
+    
     jsonl = out_dir / "scores.jsonl"
     with jsonl.open("w", encoding="utf-8") as f:
-        for it in items:
+        for it in items_list:
             f.write(it.model_dump_json() + "\n")
+    
+    # Generate rationales.md if rationale data exists
+    rationales_file = out_dir / "rationales.md"
+    with rationales_file.open("w", encoding="utf-8") as f:
+        for it in items_list:
+            for r in it.results:
+                if r.rationale:
+                    f.write(f"# {r.candidate_id}\n\n{r.rationale}\n\n")
+    
     csvp = out_dir / "scores.csv"
     with csvp.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
