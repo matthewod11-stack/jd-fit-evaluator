@@ -6,12 +6,9 @@ Test script to verify taxonomy changes for product designer and web3 signals
 import sys
 from pathlib import Path
 
-# Add the src directory to the path so we can import modules
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
 def test_title_hints():
     """Test the updated TITLE_HINTS dictionary"""
-    from etl.greenhouse import TITLE_HINTS, guess_titles_norm
+    from src.etl.greenhouse import TITLE_HINTS, guess_titles_norm
     
     print("=== Testing TITLE_HINTS Structure ===")
     print("Available categories:", list(TITLE_HINTS.keys()))
@@ -46,7 +43,7 @@ def test_title_hints():
 
 def test_normalize_title():
     """Test the normalize_title function"""
-    from parsing.stints import normalize_title
+    from src.parsing.stints import normalize_title
     
     print("\n=== Testing normalize_title Function ===")
     

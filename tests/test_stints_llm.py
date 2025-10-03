@@ -4,12 +4,10 @@ from datetime import date
 from pathlib import Path
 import sys
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from parsing.models import Stint, Project
-from parsing.stints_llm import extract_stints_llm, _hash
-from parsing.stints import extract_stints, _stint_model_to_dict
+# Use proper package imports instead of sys.path hack
+from src.parsing.models import Stint, Project
+from src.parsing.stints_llm import extract_stints_llm, _hash
+from src.parsing.stints import extract_stints, _stint_model_to_dict
 
 
 def test_stint_model():
