@@ -66,8 +66,11 @@ class EmbeddingProvider:
         raise NotImplementedError
 
 class MockProvider(EmbeddingProvider):
+    def __init__(self, dim: int = 1536):
+        self.dim = dim
+
     def embed_batch(self, texts: Sequence[str]) -> List[List[float]]:
-        return [[0.0]*1536 for _ in texts]
+        return [[0.0] * self.dim for _ in texts]
 
 class OpenAIProvider(EmbeddingProvider):
     def __init__(self, model: str):
@@ -98,7 +101,7 @@ class OllamaProvider(EmbeddingProvider):
 
 def get_provider() -> EmbeddingProvider:
     if cfg.embeddings.provider == "mock":
-        return MockProvider()
+        return MockProvider(dim=cfg.embeddings.dim)
     if cfg.embeddings.provider == "openai":
         return OpenAIProvider(cfg.embeddings.model)
     if cfg.embeddings.provider == "ollama":
@@ -137,9 +140,9 @@ import hashlib
 
 class DeterministicFallbackEmbedder:
     """Legacy compatibility - deterministic embeddings for testing."""
-    
-    def __init__(self, dim: int = 768):
-        self.dim = dim
+
+    def __init__(self, dim: int | None = None):
+        self.dim = dim if dim is not None else cfg.embeddings.dim
     
     def embed_text(self, text: str) -> list[float]:
         """Generate deterministic embedding from text hash."""
@@ -159,11 +162,11 @@ class DeterministicFallbackEmbedder:
 class OllamaEmbedder:
     """Legacy compatibility - Ollama embeddings."""
 
-    def __init__(self, model: str = "nomic-embed-text", dim: int = 768, cache_path: str = ".cache/embeddings.db"):
-        self.model = model
-        self.dim = dim
+    def __init__(self, model: str | None = None, dim: int | None = None, cache_path: str = ".cache/embeddings.db"):
+        self.model = model if model is not None else cfg.embeddings.model
+        self.dim = dim if dim is not None else cfg.embeddings.dim
         self.cache_path = cache_path
-        self.provider = OllamaProvider(model)
+        self.provider = OllamaProvider(self.model)
 
     def embed_text(self, text: str) -> list[float]:
         """Single text embedding via Ollama."""

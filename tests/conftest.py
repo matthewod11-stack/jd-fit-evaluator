@@ -30,8 +30,10 @@ def pytest_configure(config):
     os.environ.setdefault("PYTHONHASHSEED", "0")
     os.environ.setdefault("DRY_RUN", "true")          # Prefer offline/deterministic paths by default
     os.environ.setdefault("USE_LLM_STINTS", "0")      # Avoid live LLM by default in unit tests
-    os.environ.setdefault("EMBED_BACKEND", "deterministic")  # Force deterministic embedder
-    os.environ.setdefault("EMBED_CACHE_PATH", ".cache/test-embeddings.db")
+
+    # Use canonical config for embeddings - mock provider for deterministic behavior
+    os.environ.setdefault("JD_FIT_EMBEDDINGS__PROVIDER", "mock")
+    os.environ.setdefault("JD_FIT_EMBEDDINGS__DIM", "768")
 
 def pytest_collection_modifyitems(config, items):
     """Skip LLM_REQUIRED tests unless --llm is provided."""

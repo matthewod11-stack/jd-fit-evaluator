@@ -4,8 +4,9 @@ from pathlib import Path
 
 
 def test_sample_score_no_exceptions(tmp_path, monkeypatch):
-    monkeypatch.setenv("EMBED_BACKEND", "deterministic")
-    monkeypatch.setenv("EMBED_CACHE_PATH", str(tmp_path / "embeddings.db"))
+    # Use canonical config instead of legacy EMBED_* env vars
+    monkeypatch.setenv("JD_FIT_EMBEDDINGS__PROVIDER", "mock")
+    monkeypatch.setenv("JD_FIT_EMBEDDINGS__DIM", "768")
 
     importlib.invalidate_caches()
     config = importlib.import_module("src.config")
