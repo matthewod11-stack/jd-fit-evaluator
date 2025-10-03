@@ -39,3 +39,17 @@ cfg = AppConfig()
 # Legacy compatibility exports
 LLM_MODEL = cfg.llm.model
 USE_LLM_STINTS = True  # Always enable LLM stints processing
+
+# Legacy settings wrapper for deprecated modules
+class LegacySettings:
+    def __init__(self, config: AppConfig):
+        self._config = config
+        # Deprecated Greenhouse settings
+        self.gh_token = None
+        self.gh_job_id = None
+    
+    def __getattr__(self, name):
+        # Fallback to the main config
+        return getattr(self._config, name)
+
+settings = LegacySettings(cfg)

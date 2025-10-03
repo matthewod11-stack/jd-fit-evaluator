@@ -6,7 +6,7 @@ import requests, io, os, time, typing as t, pathlib, json, csv
 from datetime import datetime, date
 from functools import lru_cache
 from ..parsing.stints import shape_adapter
-from ..config import settings
+from jd_fit_evaluator.config import settings
 from ..parsing.resume import extract_text
 
 MONTH_LOOKUP = {
