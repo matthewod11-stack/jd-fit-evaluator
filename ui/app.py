@@ -8,7 +8,7 @@ from typing import Dict, Any
 import csv
 import html
 # Import constants relative to ui module
-from .constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
+from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
 
 # Import from installed package 
 from src.scoring.finalize import compute_fit
@@ -103,6 +103,12 @@ def _load_cached_results() -> list[dict]:
     return candidates
 
 st.set_page_config(page_title="JD Fit Evaluator", layout="wide")
+
+if st.button("Clear session"):
+    for k in list(st.session_state.keys()):
+        del st.session_state[k]
+    st.success("Session state cleared.")
+
 st.title("JD-anchored Candidate Evaluator")
 
 

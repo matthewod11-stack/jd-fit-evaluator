@@ -24,6 +24,11 @@ def score(
 ):
     log = logging.getLogger(__name__)
     try:
+        # Validate that candidates path exists
+        candidates_path = Path(candidates)
+        if not candidates_path.exists():
+            raise UserInputError(f"Candidates path does not exist: {candidates}")
+
         # NOTE: hook up to your existing loader/scorer here
         # items: list[CanonicalScore] = score_candidates(load_candidates_any(candidates, strict), role, explain)
         # For now, write a tiny sanity artifact so the command is runnable post-merge:
