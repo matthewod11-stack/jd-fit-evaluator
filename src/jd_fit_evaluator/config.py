@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, DirectoryPath, field_validator
 from pydantic_settings import BaseSettings
 
 class EmbeddingConfig(BaseModel):
-    provider: str = Field(default="openai", pattern="^(openai|ollama|mock)$")
+    provider: str = Field(default="mock", pattern="^(openai|ollama|mock)$")
     model: str = "text-embedding-3-small"
     batch_size: int = Field(default=256, ge=1, le=1024)
     timeout_s: int = Field(default=60, ge=5, le=300)
