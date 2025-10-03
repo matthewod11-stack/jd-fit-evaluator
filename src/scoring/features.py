@@ -8,7 +8,7 @@ from difflib import SequenceMatcher
 import numpy as np
 
 from .weights import DEFAULT_WEIGHTS
-from models.embeddings import _cosine as cosine
+from jd_fit_evaluator.models.embeddings import _cosine as cosine
 
 # PR-003: Title matching improvements
 

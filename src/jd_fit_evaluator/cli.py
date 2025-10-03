@@ -8,6 +8,21 @@ from jd_fit_evaluator.config import cfg
 from jd_fit_evaluator.utils.schema import CanonicalScore, write_scores
 from jd_fit_evaluator.utils.errors import UserInputError, ConfigError, SchemaError
 
+# Legacy compatibility constants
+LEGACY_CSV_HEADERS = [
+    "candidate_id",
+    "name", 
+    "email",
+    "title_canonical",
+    "industry_canonical", 
+    "score",
+    "titles_score",
+    "industry_score",
+    "tenure_score",
+    "skills_score",
+    "context_score",
+]
+
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 @app.callback()
@@ -24,6 +39,8 @@ def score(
 ):
     log = logging.getLogger(__name__)
     try:
+        import sys
+        sys.path.insert(0, "src")
         from scoring.finalize import score_candidates
 
         # Validate that candidates path exists
@@ -91,6 +108,8 @@ def parse(input_dir: str, out_dir: Path = typer.Option(cfg.out_dir, "--out","-o"
 def pipeline(input_dir: str, role: str = typer.Option(...,"--role","-r"), out_dir: Path = typer.Option(cfg.out_dir,"--out","-o"), use_llm: bool=True, explain: bool=True):
     from jd_fit_evaluator.ingest.rename import batch_rename
     from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm
+    import sys
+    sys.path.insert(0, "src")
     from scoring.finalize import score_candidates
 
     batch_rename(input_dir)

@@ -1,0 +1,45 @@
+{
+  "name": "Jordan Example",
+  "titles_norm": [
+    [
+      "recruiter",
+      2
+    ],
+    [
+      "people_ops",
+      2
+    ]
+  ],
+  "stints": [
+    {
+      "title": "Senior Technical Recruiter",
+      "industry_tags": [
+        "saas"
+      ],
+      "start": {
+        "year": 2022,
+        "month": 6,
+        "day": 1
+      },
+      "end": null
+    },
+    {
+      "title": "Technical Recruiter",
+      "industry_tags": [
+        "fintech"
+      ],
+      "start": {
+        "year": 2020,
+        "month": 1,
+        "day": 1
+      },
+      "end": {
+        "year": 2022,
+        "month": 5,
+        "day": 1
+      }
+    }
+  ],
+  "skills_blob": "Sourcing SWE/Infra, Greenhouse, structured interviews, comp bands, close offers",
+  "relevant_bullets_blob": "- Owned 20+ SWE reqs; built pipelines; ran hiring loops; calibrated offers with finance."
+}

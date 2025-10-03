@@ -21,7 +21,7 @@ pytest -q tests/parsing/test_stints_adapter.py -q
 ### 2. Integration Test with Sample Candidate
 
 ```bash
-python -c "from src.cli import score; score('data/sample/jd.txt', sample=True)"
+python -c "from jd_fit_evaluator.cli import score; score('data/sample/jd.txt', sample=True)"
 ```
 
 **Result**: ✅ Successfully processed candidate "Alex Rivera"

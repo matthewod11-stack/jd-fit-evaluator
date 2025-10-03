@@ -6,7 +6,7 @@ from typing import Any
 import requests
 from jinja2 import Template
 
-from src.config import LLM_MODEL
+from jd_fit_evaluator.config import LLM_MODEL
 
 from .jd_profile import JD_PD_WEB3
 

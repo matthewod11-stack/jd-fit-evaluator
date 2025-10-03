@@ -127,3 +127,91 @@ def embed_texts(texts: list[str], cache_path: str) -> list[list[float]]:
         else:
             result.append(vectors[t])
     return result
+
+
+# Legacy compatibility functions
+import numpy as np
+from typing import Iterable, Any
+import hashlib
+
+
+class DeterministicFallbackEmbedder:
+    """Legacy compatibility - deterministic embeddings for testing."""
+    
+    def __init__(self, dim: int = 768):
+        self.dim = dim
+    
+    def embed_text(self, text: str) -> list[float]:
+        """Generate deterministic embedding from text hash."""
+        # Create a deterministic hash-based embedding
+        hash_bytes = hashlib.sha256(text.encode()).digest()
+        # Convert to float array and normalize
+        values = [float(b) / 255.0 for b in hash_bytes[:self.dim]]
+        # Pad if needed
+        while len(values) < self.dim:
+            values.append(0.0)
+        return values[:self.dim]
+    
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        return [self.embed_text(text) for text in texts]
+
+
+class OllamaEmbedder:
+    """Legacy compatibility - Ollama embeddings."""
+    
+    def __init__(self, model: str = "nomic-embed-text", dim: int = 768, cache_path: str = ".cache/embeddings.db"):
+        self.model = model
+        self.dim = dim
+        self.cache_path = cache_path
+    
+    def embed_text(self, text: str) -> list[float]:
+        """Single text embedding via Ollama."""
+        result = embed_texts([text], self.cache_path)
+        return result[0] if result else []
+    
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        return embed_texts(texts, self.cache_path)
+
+def _cosine(a: Iterable[float], b: Iterable[float]) -> float:
+    """Compute cosine similarity between two vectors."""
+    a_arr = np.asarray(a, dtype=np.float64)
+    b_arr = np.asarray(b, dtype=np.float64)
+
+    if a_arr.ndim != 1:
+        raise ValueError(f"expected 1D vector for 'a', got shape {a_arr.shape}")
+    if b_arr.ndim != 1:
+        raise ValueError(f"expected 1D vector for 'b', got shape {b_arr.shape}")
+    if a_arr.shape[0] != b_arr.shape[0]:
+        raise ValueError(
+            f"cosine requires matching shapes, got {a_arr.shape[0]} and {b_arr.shape[0]} elements"
+        )
+
+    if not (np.isfinite(a_arr).all() and np.isfinite(b_arr).all()):
+        raise ValueError("cosine received non-finite values")
+
+    norm_a = np.linalg.norm(a_arr)
+    norm_b = np.linalg.norm(b_arr)
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+
+    value = float(np.dot(a_arr, b_arr) / (norm_a * norm_b))
+    if value > 1.0:
+        return 1.0
+    if value < -1.0:
+        return -1.0
+    return value
+
+
+def get_embedder(config: Any = None):
+    """Get embedder instance - legacy compatibility wrapper."""
+    # For now, return a simple wrapper that uses the new embed_texts function
+    class EmbedderWrapper:
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            return embed_texts(texts, ".cache/embeddings.db")  # Default cache path
+        
+        def embed_text(self, text: str) -> list[float]:
+            """Single text embedding - legacy compatibility."""
+            result = embed_texts([text], ".cache/embeddings.db")
+            return result[0] if result else []
+    
+    return EmbedderWrapper()

@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from src.cli import LEGACY_CSV_HEADERS
+from jd_fit_evaluator.cli import LEGACY_CSV_HEADERS
 
 ROOT = Path(__file__).resolve().parents[2]  # repo root (adjust if layout differs)
 DOCS = ROOT / "docs"
@@ -16,9 +16,7 @@ GOLDENS = ROOT / "tests" / "goldens" / "pd"
 JD_PATH = DOCS / "Agoric_Senior_Product_Designer_JD.txt"
 
 SAMPLE_CMD = (
-    "EMBED_BACKEND=deterministic USE_LLM_STINTS=0 "
-    "EMBED_CACHE_PATH=.cache/test-sample-embeddings.db "
-    f"python -m src.cli score {shlex.quote(str(JD_PATH))} --sample"
+    "python -m jd_fit_evaluator.cli score data/sample --role product-designer --explain -o out"
 )
 
 def _run(cmd: str):

@@ -10,7 +10,7 @@ from .features import (
     context_penalty, skill_sem_sim
 )
 from .weights import DEFAULT_WEIGHTS
-from models.embeddings import get_embedder
+from jd_fit_evaluator.models.embeddings import get_embedder
 from jd_fit_evaluator.utils.schema import CanonicalScore, CanonicalResult
 
 def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dict:

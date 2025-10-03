@@ -4,7 +4,7 @@ source .venv/bin/activate || python -m venv .venv && source .venv/bin/activate
 
 # 1) Score writes both candidate_id and name_norm
 python - <<'PY'
-from src.cli import score
+from jd_fit_evaluator.cli import score
 score('data/sample/jd.txt', sample=True)
 PY
 
@@ -24,7 +24,7 @@ PY
 # 2) Train does not crash when labels missing; exits 0 with guidance
 python - <<'PY'
 try:
-    from src.cli import train_impl
+    from jd_fit_evaluator.cli import train_impl
     train_impl()  # Should handle missing labels gracefully
     print("✓ train completed without crash")
 except SystemExit as e:

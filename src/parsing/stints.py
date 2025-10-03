@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 from datetime import date
 from typing import Optional, List
 from .stints_llm import extract_stints_llm
-from src.config import USE_LLM_STINTS
+from jd_fit_evaluator.config import USE_LLM_STINTS
 
 
 _DATE_TOKEN = re.compile(r"^(\d{4})(?:[-/](\d{1,2}))?(?:[-/](\d{1,2}))?$")

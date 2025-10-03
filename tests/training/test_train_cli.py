@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from src.cli import app
+from jd_fit_evaluator.cli import app
 from src.training.train import train
 
 

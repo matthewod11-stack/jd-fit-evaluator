@@ -7,7 +7,7 @@ pytest -q tests/parsing/test_stints_adapter.py -q
 
 # 2) Integration: run scoring and ensure no candidate has empty stints
 python - <<'PY'
-from src.cli import score
+from jd_fit_evaluator.cli import score
 score('data/sample/jd.txt', sample=True)
 PY
 

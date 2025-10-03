@@ -12,7 +12,9 @@ from typing import Any, Iterable
 import numpy as np
 import requests
 
-from src.config import EMBED_BACKEND, EMBED_CACHE_PATH, EMBED_DIM, EMBED_MODEL
+# LEGACY - DO NOT USE - imports were from deprecated src.config
+# Use jd_fit_evaluator.models.embeddings instead
+from jd_fit_evaluator.config import EMBED_BACKEND, EMBED_CACHE_PATH, EMBED_DIM, EMBED_MODEL
 
 
 _OLLAMA_ENDPOINT = os.getenv("OLLAMA_EMBED_URL", "http://localhost:11434/api/embeddings")

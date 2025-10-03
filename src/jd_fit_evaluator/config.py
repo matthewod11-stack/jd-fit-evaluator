@@ -35,3 +35,7 @@ class AppConfig(BaseSettings):
         case_sensitive = False
 
 cfg = AppConfig()
+
+# Legacy compatibility exports
+LLM_MODEL = cfg.llm.model
+USE_LLM_STINTS = True  # Always enable LLM stints processing

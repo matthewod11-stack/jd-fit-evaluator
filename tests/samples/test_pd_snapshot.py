@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv
 
-from src.cli import LEGACY_CSV_HEADERS
+from jd_fit_evaluator.cli import LEGACY_CSV_HEADERS
 
 from tests.samples.test_sample_flow import _ensure_sample_outputs
 

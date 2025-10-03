@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from src.config import LLM_MODEL
+from jd_fit_evaluator.config import LLM_MODEL
 from .models import Stint
 
 def _hash(text: str) -> str:

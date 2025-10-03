@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.models.embeddings import DeterministicFallbackEmbedder, OllamaEmbedder, _cosine
+from jd_fit_evaluator.models.embeddings import DeterministicFallbackEmbedder, OllamaEmbedder, _cosine
 
 
 def test_shape_and_dtype_ollama_embedder(monkeypatch, tmp_path):
@@ -18,7 +18,7 @@ def test_shape_and_dtype_ollama_embedder(monkeypatch, tmp_path):
     def _mock_post(url, json, timeout):
         return _MockResponse()
 
-    monkeypatch.setattr("src.models.embeddings.requests.post", _mock_post)
+    monkeypatch.setattr("jd_fit_evaluator.models.embeddings.requests.post", _mock_post)
 
     embedder = OllamaEmbedder(
         model="test-model",

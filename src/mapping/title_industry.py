@@ -5,8 +5,8 @@ import requests
 
 import numpy as np
 
-from src.models.embeddings import get_embedder, _cosine
-from src.config import LLM_MODEL
+from jd_fit_evaluator.models.embeddings import get_embedder, _cosine
+from jd_fit_evaluator.config import LLM_MODEL
 
 _TITLE_KEY_TRANS = str.maketrans({c: " " for c in string.punctuation})
 _TITLE_LOOKUP = {
