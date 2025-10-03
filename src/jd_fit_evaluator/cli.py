@@ -11,10 +11,10 @@ from jd_fit_evaluator.utils.errors import UserInputError, ConfigError, SchemaErr
 # Legacy compatibility constants
 LEGACY_CSV_HEADERS = [
     "candidate_id",
-    "name", 
+    "name",
     "email",
     "title_canonical",
-    "industry_canonical", 
+    "industry_canonical",
     "score",
     "titles_score",
     "industry_score",
@@ -25,17 +25,47 @@ LEGACY_CSV_HEADERS = [
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
+# Legacy compatibility functions
+def load_sample_candidate() -> dict:
+    """Load a sample candidate from data/sample directory for testing."""
+    # Check for Web3 designer candidate first, fallback to default
+    for candidate_file in ["candidate_designer_web3.parsed.json", "candidate_example.parsed.json"]:
+        p = Path(f"data/sample/{candidate_file}")
+        if p.exists():
+            return json.loads(p.read_text())
+    raise FileNotFoundError("No sample candidate files found")
+
+def load_role_from_jd(jd_path: str | Path) -> dict:
+    """Parse a job description file and extract role requirements."""
+    text = Path(jd_path).read_text()
+    lines = [l.strip("-• ").strip() for l in text.splitlines() if l.strip()]
+    titles = [l.replace("Title:", "").strip() for l in lines if l.lower().startswith("title:")]
+    level = next((l.split(":")[1].strip() for l in lines if l.lower().startswith("level:")), "senior")
+    industries = [s.strip() for l in lines if l.lower().startswith("industries:") for s in l.split(":")[1].split(",")]
+    must = [l for l in lines if l.lower().startswith("must-have:")]
+    nice = [l for l in lines if l.lower().startswith("nice-to-have:")]
+    skills_blob = "\n".join(must + nice)
+    role = dict(
+        titles=[t.lower() for t in titles] or ["recruiter"],
+        level=level.lower(),
+        industries=[i.lower() for i in industries],
+        jd_skills_blob=skills_blob,
+        min_avg_months=18, min_last_months=12
+    )
+    return role
+
 @app.callback()
 def _root(log_level: str = typer.Option(cfg.log_level, help="Log level")):
     init_logging(log_level)
 
 @app.command()
 def score(
-    candidates: str = typer.Argument(..., help="Dir, JSONL/JSON, or manifest CSV"),
+    candidates: str = typer.Argument("", help="Dir, JSONL/JSON, or manifest CSV"),
     role: str = typer.Option(..., "--role", "-r"),
     explain: bool = typer.Option(False, "--explain"),
     out_dir: Path = typer.Option(cfg.out_dir, "--out", "-o"),
     strict: bool = typer.Option(True, help="Fail on invalid inputs"),
+    sample: bool = typer.Option(False, "--sample", help="Use sample candidate data"),
 ):
     log = logging.getLogger(__name__)
     try:
@@ -43,10 +73,18 @@ def score(
         sys.path.insert(0, "src")
         from scoring.finalize import score_candidates
 
-        # Validate that candidates path exists
-        candidates_path = Path(candidates)
-        if not candidates_path.exists():
-            raise UserInputError(f"Candidates path does not exist: {candidates}")
+        # Handle --sample flag
+        if sample:
+            candidates_path = Path("data/sample")
+            if not candidates_path.exists():
+                raise UserInputError("Sample data directory not found: data/sample")
+        else:
+            if not candidates:
+                raise UserInputError("Candidates path is required (or use --sample)")
+            # Validate that candidates path exists
+            candidates_path = Path(candidates)
+            if not candidates_path.exists():
+                raise UserInputError(f"Candidates path does not exist: {candidates}")
 
         # Load parsed candidate JSONs
         parsed = []
@@ -60,7 +98,7 @@ def score(
                 parsed.append({"path": str(candidates_path), "parsed": json.load(fp)})
 
         if not parsed:
-            raise UserInputError(f"No parsed candidates found in {candidates}")
+            raise UserInputError(f"No parsed candidates found in {candidates_path}")
 
         # Score candidates
         items = score_candidates(parsed, role, explain)
@@ -133,18 +171,18 @@ def ingest_manifest(
     """Ingest a CSV manifest into normalized candidates.jsonl for scoring."""
     import logging
     from jd_fit_evaluator.etl.manifest_ingest import ingest_manifest_rows, ManifestIngestionError
-    
+
     # Configure logging
     log_level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(level=log_level, format='%(levelname)s: %(message)s')
     log = logging.getLogger(__name__)
-    
+
     try:
         result = ingest_manifest_rows(manifest, str(out_dir))
         typer.echo(f"✅ Successfully ingested {result['candidates_written']} candidates")
         typer.echo(f"📄 Output: {result['output_file']}")
         typer.echo(f"📊 Metadata: {result['metadata_file']}")
-        
+
     except ManifestIngestionError as e:
         typer.echo(f"❌ Manifest ingestion failed: {e}", err=True)
         if verbose:
@@ -153,6 +191,60 @@ def ingest_manifest(
     except Exception as e:
         typer.echo(f"❌ Unexpected error: {e}", err=True)
         log.exception("Unexpected error during manifest ingestion:")
+        raise typer.Exit(1)
+
+@app.command()
+def train(
+    scores: Path = typer.Option(..., "--scores", help="Path to scores JSON file"),
+    labels: Path = typer.Option(..., "--labels", help="Path to labels CSV file"),
+    out: Path = typer.Option(..., "--out", help="Output path for trained model"),
+):
+    """Train a ranking model from scored candidates and labels."""
+    import sys
+    sys.path.insert(0, "src")
+    from training.train import train as train_model
+    import pandas as pd
+
+    log = logging.getLogger(__name__)
+
+    try:
+        # Check if labels file exists and has data
+        if not labels.exists():
+            typer.echo("No labels found - skipping training")
+            return
+
+        # Check if labels CSV has any labeled rows
+        try:
+            labels_df = pd.read_csv(labels)
+            if labels_df.empty or "label" not in labels_df.columns:
+                typer.echo("No labels found - skipping training")
+                return
+
+            labels_df = labels_df.dropna(subset=["label"])
+            if labels_df.empty:
+                typer.echo("No labels found - skipping training")
+                return
+        except Exception:
+            typer.echo("No labels found - skipping training")
+            return
+
+        # Run training
+        model_path, meta = train_model(
+            scores_path=str(scores),
+            labels_csv=str(labels),
+            out_path=str(out),
+        )
+        typer.echo(f"✅ Trained model on {meta['n']} samples")
+        typer.echo(f"📄 Model saved to: {model_path}")
+
+    except SystemExit as e:
+        # Handle SystemExit from train function
+        if e.code == 0:
+            typer.echo("No labels found - skipping training")
+        else:
+            raise typer.Exit(e.code)
+    except Exception:
+        log.exception("Training failed")
         raise typer.Exit(1)
 
 if __name__ == "__main__":
