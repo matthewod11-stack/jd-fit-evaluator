@@ -1,1 +1,2 @@
-candidate_id,fit_score,rationale
+candidate_id,name,email,title_canonical,industry_canonical,score,titles_score,industry_score,tenure_score,skills_score,context_score
+demo-0001,Alex Rivera,,Senior Product Designer,Web3/DeFi,10.0,0.0,0.0,0.0,0.0,1.0
