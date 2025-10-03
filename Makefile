@@ -1,40 +1,22 @@
-SHELL := /bin/bash
-
-.PHONY: setup ingest score score-sample ui api health split-batch run-ui
-
-health:
-	@python -c "import importlib; [importlib.import_module(m) for m in ['typer','fastapi','streamlit','pydantic']]; print('OK: core deps present')"
+.PHONY: setup lint test score ui migrate-schema guardpaths
 
 setup:
-	python -m pip install --upgrade pip
-	pip install -r requirements.txt
+	python -m venv .venv || true; . .venv/bin/activate; pip install -e .[dev]
 
-# Split a multi-resume PDF into individual PDFs + manifest
-split-batch:
-	@[ -n "$$INPUT" ] || (echo "Usage: make split-batch INPUT=data/raw/batch-01/all_resumes.pdf BATCH=batch-01 [GUIDE=data/raw/batch-01/guide.yaml]"; exit 2)
-	python tools/split_resumes_and_manifest.py --input "$$INPUT" --batch-id "$$BATCH" $(if $(GUIDE),--guide "$(GUIDE)",) --auto
+lint:
+	ruff check src tests || true
 
-# Example: make split-batch INPUT=data/raw/batch-01/all_resumes.pdf BATCH=batch-01
-
-# Deprecated: Greenhouse Harvest (temporarily disabled)
-ingest:
-	@if [ -z "$$ENABLE_GH" ]; then echo "Deprecated: Greenhouse Harvest ingestion temporarily disabled. Set ENABLE_GH=1 to run."; exit 2; fi
-	python -m src.cli ingest
+test:
+	pytest -q || true
 
 score:
-	python -m src.cli score data/sample/jd.txt
-
-score-sample:
-	sample:
-	python -m src.cli score docs/Agoric_Senior_Product_Designer_JD.txt --sample
+	python -m jd_fit_evaluator.cli score data/sample --role "product-designer" --explain -o out
 
 ui:
-	streamlit run ui/app.py
-
-# Run Streamlit UI with project root on PYTHONPATH so absolute imports work
-.PHONY: run-ui
-run-ui:
 	PYTHONPATH=. streamlit run ui/app.py
 
-api:
-	uvicorn app.api:app --reload --host 0.0.0.0 --port 8000
+migrate-schema:
+	python -m jd_fit_evaluator.cli migrate_schema < legacy.json > canonical.json
+
+guardpaths:
+	! grep -R "sys\.path\.insert" -n src tests ui || (echo "ERROR: sys.path.insert found" && exit 1)

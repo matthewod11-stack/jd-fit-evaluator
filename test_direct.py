@@ -4,11 +4,9 @@ import json
 import sys
 from pathlib import Path
 
-# Add the src directory to the path so we can import modules
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-from scoring.finalize import compute_fit
-from parsing.stints import extract_stints
+# Use proper package imports instead of sys.path hack
+from src.scoring.finalize import compute_fit
+from src.parsing.stints import extract_stints
 
 def load_sample_candidate() -> dict:
     p = Path("data/sample/candidate_example.json")
