@@ -24,17 +24,31 @@ def score(
 ):
     log = logging.getLogger(__name__)
     try:
+        from scoring.finalize import score_candidates
+
         # Validate that candidates path exists
         candidates_path = Path(candidates)
         if not candidates_path.exists():
             raise UserInputError(f"Candidates path does not exist: {candidates}")
 
-        # NOTE: hook up to your existing loader/scorer here
-        # items: list[CanonicalScore] = score_candidates(load_candidates_any(candidates, strict), role, explain)
-        # For now, write a tiny sanity artifact so the command is runnable post-merge:
-        dummy = CanonicalScore(artifact={"version":"canonical-1"}, results=[])
-        write_scores([dummy], out_dir)
-        typer.echo(f"Wrote scores to {out_dir}")
+        # Load parsed candidate JSONs
+        parsed = []
+        if candidates_path.is_dir():
+            for f in candidates_path.glob("**/*.parsed.json"):
+                with f.open() as fp:
+                    parsed.append({"path": str(f), "parsed": json.load(fp)})
+        else:
+            # Single file
+            with candidates_path.open() as fp:
+                parsed.append({"path": str(candidates_path), "parsed": json.load(fp)})
+
+        if not parsed:
+            raise UserInputError(f"No parsed candidates found in {candidates}")
+
+        # Score candidates
+        items = score_candidates(parsed, role, explain)
+        write_scores(items, out_dir)
+        typer.echo(f"Scored {len(parsed)} candidates, wrote to {out_dir}")
     except (ValidationError, UserInputError, ConfigError, SchemaError) as e:
         log.error("Validation/config error: %s", e)
         raise typer.Exit(1)
@@ -53,6 +67,43 @@ def ui():
     """Launch the Streamlit UI (existing app)."""
     import subprocess, sys
     subprocess.check_call([sys.executable, "-m", "streamlit", "run", "ui/app.py"])
+
+@app.command()
+def rename(input_dir: str):
+    from jd_fit_evaluator.ingest.rename import batch_rename
+    pairs = batch_rename(input_dir)
+    typer.echo(f"Renamed {len(pairs)} files")
+
+@app.command()
+def parse(input_dir: str, out_dir: Path = typer.Option(cfg.out_dir, "--out","-o"), use_llm: bool = True):
+    from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm, ParsedResume
+    count=0
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for f in Path(input_dir).glob("**/*"):
+        if f.suffix.lower() not in {".pdf",".docx",".txt"}: continue
+        text = f.read_text(errors="ignore")
+        pr = parse_resume_with_llm(text) if use_llm else ParsedResume()
+        (out_dir/f"{f.stem}.parsed.json").write_text(pr.model_dump_json(indent=2))
+        count+=1
+    typer.echo(f"Parsed {count} resumes to {out_dir}")
+
+@app.command()
+def pipeline(input_dir: str, role: str = typer.Option(...,"--role","-r"), out_dir: Path = typer.Option(cfg.out_dir,"--out","-o"), use_llm: bool=True, explain: bool=True):
+    from jd_fit_evaluator.ingest.rename import batch_rename
+    from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm
+    from scoring.finalize import score_candidates
+
+    batch_rename(input_dir)
+    parsed=[]
+    for f in Path(input_dir).glob("**/*"):
+        if f.suffix.lower() not in {".pdf",".docx",".txt"}: continue
+        text=f.read_text(errors="ignore")
+        pr=parse_resume_with_llm(text).model_dump()
+        parsed.append({"path":str(f),"parsed":pr})
+
+    results=score_candidates(parsed, role=role, explain=explain)
+    write_scores(results, out_dir)
+    typer.echo(f"Pipeline complete! Renamed, parsed {len(parsed)} candidates, and wrote scores to {out_dir}")
 
 if __name__ == "__main__":
     app()

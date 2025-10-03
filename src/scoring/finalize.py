@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Dict, Any
+import json
+from pathlib import Path
 
 import numpy as np
 
@@ -8,7 +10,8 @@ from .features import (
     context_penalty, skill_sem_sim
 )
 from .weights import DEFAULT_WEIGHTS
-from ..models.embeddings import get_embedder
+from models.embeddings import get_embedder
+from jd_fit_evaluator.utils.schema import CanonicalScore, CanonicalResult
 
 def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dict:
     W = (weights or DEFAULT_WEIGHTS).copy()
@@ -94,3 +97,101 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
       f"Usability testing experience: evidence '{_evidence(resume_terms, 'usability testing','user research')}'",
       f"Title aligned to Product/UX Designer: score={features.get('title_score',0)}",
     ]
+
+
+def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False) -> list[CanonicalScore]:
+    """
+    Score parsed candidates against a role definition.
+
+    Args:
+        parsed_candidates: List of dicts with 'path' and 'parsed' keys (or just parsed candidate dicts)
+        role: Either a role name/path string or a role dict with scoring criteria
+        explain: If True, include detailed rationale in results
+
+    Returns:
+        List of CanonicalScore objects ready for write_scores()
+    """
+    # Load role definition
+    if isinstance(role, str):
+        role_dict = _load_role(role)
+    else:
+        role_dict = role
+
+    # Extract weights from role if present
+    weights = role_dict.get("weights")
+
+    results = []
+    for item in parsed_candidates:
+        # Handle both formats: {"path": ..., "parsed": ...} or just the parsed dict
+        if isinstance(item, dict) and "parsed" in item:
+            candidate = item["parsed"]
+            # Prefer candidate_id from data, fallback to filename
+            candidate_id = candidate.get("candidate_id") or Path(item["path"]).stem
+        else:
+            candidate = item
+            candidate_id = candidate.get("candidate_id", candidate.get("name", "unknown"))
+
+        # Compute fit score
+        fit_result = compute_fit(candidate, role_dict, weights)
+
+        # Build rationale if requested
+        rationale = None
+        if explain and fit_result.get("why"):
+            rationale = "\n".join(fit_result["why"])
+
+        # Extract metadata for CSV
+        name = candidate.get("name", "")
+        emails = candidate.get("emails", [])
+        email = emails[0] if emails else ""
+
+        # Extract most recent title and industry from stints
+        stints = candidate.get("stints", [])
+        title_canonical = ""
+        industry_canonical = ""
+        if stints:
+            latest_stint = stints[0]
+            title_canonical = latest_stint.get("title", "")
+            industry_canonical = latest_stint.get("industry", "")
+
+        # Create canonical result
+        result = CanonicalResult(
+            candidate_id=candidate_id,
+            fit_score=fit_result["fit"],
+            rationale=rationale,
+            signals=fit_result.get("subs", {}),
+            name=name,
+            email=email,
+            title_canonical=title_canonical,
+            industry_canonical=industry_canonical
+        )
+        results.append(result)
+
+    # Return as a single CanonicalScore artifact
+    return [CanonicalScore(
+        artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
+        results=results
+    )]
+
+
+def _load_role(role: str) -> dict:
+    """Load role definition from file or built-in profiles."""
+    from .jd_profile import AGORIC_SENIOR_PRODUCT_DESIGNER, JD_PD_WEB3
+
+    # Check if it's a built-in profile
+    if role.lower() in {"agoric", "senior_product_designer", "product_designer"}:
+        return AGORIC_SENIOR_PRODUCT_DESIGNER
+    if role.lower() in {"pd_web3", "web3"}:
+        return JD_PD_WEB3
+
+    # Try loading from file
+    role_path = Path(role)
+    if role_path.exists():
+        with role_path.open() as f:
+            data = json.load(f)
+            # Handle the format from data/profiles/product.json
+            if "jd" in data and "weights" in data:
+                return data
+            return data
+
+    # Fallback to default
+    return AGORIC_SENIOR_PRODUCT_DESIGNER

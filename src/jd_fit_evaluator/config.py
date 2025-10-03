@@ -9,12 +9,20 @@ class EmbeddingConfig(BaseModel):
     batch_size: int = Field(default=256, ge=1, le=1024)
     timeout_s: int = Field(default=60, ge=5, le=300)
 
+class LLMConfig(BaseModel):
+    provider: str = Field(default="mock", pattern="^(openai|ollama|mock)$")
+    model: str = "llama3.1"
+    temperature: float = Field(default=0.1, ge=0.0, le=2.0)
+    max_tokens: int = Field(default=4096, ge=1, le=32000)
+    timeout_s: int = Field(default=60, ge=5, le=300)
+
 class AppConfig(BaseSettings):
     env: str = Field(default="dev")
     out_dir: DirectoryPath = Field(default_factory=lambda: pathlib.Path("out"))
     log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR)$")
     greenhouse_deprecated: bool = True
     embeddings: EmbeddingConfig = EmbeddingConfig()
+    llm: LLMConfig = LLMConfig()
 
     @field_validator("out_dir")
     @classmethod
