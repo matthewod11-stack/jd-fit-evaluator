@@ -1,0 +1,21 @@
+test_taxonomy.py:    from src.etl.greenhouse import TITLE_HINTS, guess_titles_norm
+test_taxonomy.py:    from src.parsing.stints import normalize_title
+test_direct.py:from src.scoring.finalize import compute_fit
+test_direct.py:from src.parsing.stints import extract_stints
+app/api.py:from src.scoring.finalize import compute_fit
+ui/app.py:from src.scoring.finalize import compute_fit
+tests/test_stints_llm.py:from src.parsing.models import Stint, Project
+tests/test_stints_llm.py:from src.parsing.stints_llm import extract_stints_llm, _hash
+tests/test_stints_llm.py:from src.parsing.stints import extract_stints, _stint_model_to_dict
+tests/test_stints_llm.py:    from src.parsing.stints_llm import _hash
+tests/test_scoring_features.py:from src.etl.greenhouse import get_stints
+tests/test_scoring_features.py:from src.scoring.features import tenure_scores, recency_score
+tests/test_tenure_merge.py:from src.scoring.tenure import months_between, union_intervals
+tests/training/test_train_cli.py:from src.training.train import train
+tests/test_title_normalizer.py:from src.mapping.title_industry import normalize_title, normalize_industry
+tests/test_rationale_snapshot.py:from src.scoring.rationale import build_rationale
+tests/test_rationale_snapshot.py:from src.scoring.jd_profile import AGORIC_SENIOR_PRODUCT_DESIGNER as jd
+tests/parsing/test_stints_adapter.py:from src.etl.greenhouse import get_stints
+tests/parsing/test_stints_adapter.py:from src.parsing.stints import shape_adapter
+tests/etl/test_ingestion_reporting.py:from src.etl.ingestion import ingest_manifest_rows as _fake_ingest
+tests/scoring/test_title_match.py:from src.scoring.features import new_title_match_score

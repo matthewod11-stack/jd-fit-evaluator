@@ -1,0 +1,8 @@
+optimized_final_run.py:sys.path.insert(0, str(Path(__file__).parent / "src"))
+validate_optimization.py:        sys.path.insert(0, ".")
+validate_optimization.py:    sys.path.insert(0, ".")
+tests/pipeline/test_batch_pipeline.py:    sys.path.insert(0, str(ROOT / "src"))
+tests/pipeline/test_batch_pipeline.py:    sys.path.insert(0, str(ROOT / "src"))
+src/jd_fit_evaluator/cli.py:        sys.path.insert(0, "src")
+src/jd_fit_evaluator/cli.py:    sys.path.insert(0, "src")
+src/jd_fit_evaluator/cli.py:    sys.path.insert(0, "src")
