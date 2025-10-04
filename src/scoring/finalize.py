@@ -100,7 +100,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
     ]
 
 
-def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False) -> list[CanonicalResult]:
+def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False, wrap_artifact: bool = True) -> list:
     """
     Score parsed candidates against a role definition.
 
@@ -167,7 +167,15 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         )
         results.append(result)
 
-    # Return flat list of results (was previously wrapped in a CanonicalScore artifact)
+    # Optionally wrap results into the legacy CanonicalScore artifact for
+    # backwards compatibility. New callers can pass wrap_artifact=False to
+    # receive a flat list of CanonicalResult.
+    if wrap_artifact:
+        return [CanonicalScore(
+            artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
+            results=results
+        )]
+
     return results
 
 

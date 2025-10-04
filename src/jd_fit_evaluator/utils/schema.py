@@ -41,6 +41,18 @@ def write_scores(items: Iterable[CanonicalScore], out_dir: pathlib.Path):
     
     # Convert to list so we can iterate multiple times
     items_list = list(items)
+
+    # Backwards compatibility: if callers pass a flat list of CanonicalResult
+    # (refactor changed score_candidates to return flat lists), wrap them into
+    # a single CanonicalScore artifact so downstream code and tests continue
+    # to work without immediate changes.
+    if items_list:
+        first = items_list[0]
+        # If first is a CanonicalResult, wrap the list
+        if isinstance(first, CanonicalResult):
+            # items_list currently holds CanonicalResult instances; wrap into a CanonicalScore
+            canonical_results = list(items_list)
+            items_list = [CanonicalScore(artifact={"version": "canonical-1", "role": "unknown"}, results=canonical_results)]
     
     jsonl = out_dir / "scores.jsonl"
     with jsonl.open("w", encoding="utf-8") as f:
@@ -62,7 +74,7 @@ def write_scores(items: Iterable[CanonicalScore], out_dir: pathlib.Path):
             "candidate_id", "name", "email", "title_canonical", "industry_canonical",
             "score", "titles_score", "industry_score", "tenure_score", "skills_score", "context_score"
         ])
-        for it in items:
+        for it in items_list:
             for r in it.results:
                 w.writerow([
                     r.candidate_id,

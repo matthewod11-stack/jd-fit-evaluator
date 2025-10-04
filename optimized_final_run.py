@@ -92,7 +92,7 @@ class OptimizedScorer:
         """Score a batch of candidates. Returns a dict with success and flat results list."""
         try:
             # Score the batch - score_candidates now returns a flat list of CanonicalResult
-            batch_results = score_candidates(batch, self.role_dict, self.explain)
+            batch_results = score_candidates(batch, self.role_dict, self.explain, wrap_artifact=False)
             return [{"success": True, "results": batch_results}]
         except Exception as e:
             self.logger.error(f"Batch scoring failed: {e}")
