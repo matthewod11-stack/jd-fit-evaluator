@@ -1,7 +1,11 @@
 from __future__ import annotations
 from typing import Dict, Any
 import json
+import logging
+import time
+import traceback
 from pathlib import Path
+from datetime import datetime
 
 import numpy as np
 
@@ -12,6 +16,8 @@ from .features import (
 from .weights import DEFAULT_WEIGHTS
 from jd_fit_evaluator.models.embeddings import get_embedder
 from jd_fit_evaluator.utils.schema import CanonicalScore, CanonicalResult
+
+log = logging.getLogger(__name__)
 
 def compute_fit(candidate: dict, role: dict, weights: dict | None = None) -> dict:
     W = (weights or DEFAULT_WEIGHTS).copy()
@@ -111,60 +117,149 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
     Returns:
         List of CanonicalScore objects ready for write_scores()
     """
+    batch_start_time = time.time()
+    total_candidates = len(parsed_candidates)
+
+    log.info("=" * 80)
+    log.info("BATCH SCORING STARTED")
+    log.info("=" * 80)
+    log.info(f"Timestamp: {datetime.now().isoformat()}")
+    log.info(f"Total candidates: {total_candidates}")
+    log.info(f"Explain mode: {explain}")
+
     # Load role definition
     if isinstance(role, str):
         role_dict = _load_role(role)
+        log.info(f"Role loaded from: {role}")
     else:
         role_dict = role
+        log.info("Role provided as dictionary")
+
+    log.info(f"Role name: {role_dict.get('role', 'unknown')}")
 
     # Extract weights from role if present
     weights = role_dict.get("weights")
 
     results = []
-    for item in parsed_candidates:
-        # Handle both formats: {"path": ..., "parsed": ...} or just the parsed dict
-        if isinstance(item, dict) and "parsed" in item:
-            candidate = item["parsed"]
-            # Prefer candidate_id from data, fallback to filename
-            candidate_id = candidate.get("candidate_id") or Path(item["path"]).stem
-        else:
-            candidate = item
-            candidate_id = candidate.get("candidate_id", candidate.get("name", "unknown"))
+    errors = []
+    processing_times = []
 
-        # Compute fit score
-        fit_result = compute_fit(candidate, role_dict, weights)
+    for idx, item in enumerate(parsed_candidates, 1):
+        candidate_start_time = time.time()
 
-        # Build rationale if requested
-        rationale = None
-        if explain and fit_result.get("why"):
-            rationale = "\n".join(fit_result["why"])
+        try:
+            # Handle both formats: {"path": ..., "parsed": ...} or just the parsed dict
+            if isinstance(item, dict) and "parsed" in item:
+                candidate = item["parsed"]
+                # Prefer candidate_id from data, fallback to filename
+                candidate_id = candidate.get("candidate_id") or Path(item["path"]).stem
+            else:
+                candidate = item
+                candidate_id = candidate.get("candidate_id", candidate.get("name", "unknown"))
 
-        # Extract metadata for CSV
-        name = candidate.get("name", "")
-        emails = candidate.get("emails", [])
-        email = emails[0] if emails else ""
+            # Log candidate processing start
+            log.info(f"[{idx}/{total_candidates}] Processing candidate: {candidate_id}")
 
-        # Extract most recent title and industry from stints
-        stints = candidate.get("stints", [])
-        title_canonical = ""
-        industry_canonical = ""
-        if stints:
-            latest_stint = stints[0]
-            title_canonical = latest_stint.get("title", "")
-            industry_canonical = latest_stint.get("industry", "")
+            # Compute fit score
+            fit_result = compute_fit(candidate, role_dict, weights)
 
-        # Create canonical result
-        result = CanonicalResult(
-            candidate_id=candidate_id,
-            fit_score=fit_result["fit"],
-            rationale=rationale,
-            signals=fit_result.get("subs", {}),
-            name=name,
-            email=email,
-            title_canonical=title_canonical,
-            industry_canonical=industry_canonical
-        )
-        results.append(result)
+            # Build rationale if requested
+            rationale = None
+            if explain and fit_result.get("why"):
+                rationale = "\n".join(fit_result["why"])
+
+            # Extract metadata for CSV
+            name = candidate.get("name", "")
+            emails = candidate.get("emails", [])
+            email = emails[0] if emails else ""
+
+            # Extract most recent title and industry from stints
+            stints = candidate.get("stints", [])
+            title_canonical = ""
+            industry_canonical = ""
+            if stints:
+                latest_stint = stints[0]
+                title_canonical = latest_stint.get("title", "")
+                industry_canonical = latest_stint.get("industry", "")
+
+            # Create canonical result
+            result = CanonicalResult(
+                candidate_id=candidate_id,
+                fit_score=fit_result["fit"],
+                rationale=rationale,
+                signals=fit_result.get("subs", {}),
+                name=name,
+                email=email,
+                title_canonical=title_canonical,
+                industry_canonical=industry_canonical
+            )
+            results.append(result)
+
+            # Track processing time
+            candidate_elapsed = time.time() - candidate_start_time
+            processing_times.append(candidate_elapsed)
+
+            # Log success with score and timing
+            log.info(f"[{idx}/{total_candidates}] ✓ {candidate_id}: score={fit_result['fit']:.1f} (processed in {candidate_elapsed:.2f}s)")
+
+            # Progress percentage update every 10% or so
+            progress_pct = (idx / total_candidates) * 100
+            if idx == 1 or idx % max(1, total_candidates // 10) == 0 or idx == total_candidates:
+                avg_time = sum(processing_times) / len(processing_times)
+                remaining = total_candidates - idx
+                eta_seconds = avg_time * remaining
+                log.info(f"Progress: {progress_pct:.1f}% ({idx}/{total_candidates}) | Avg: {avg_time:.2f}s/candidate | ETA: {eta_seconds:.0f}s")
+
+        except Exception as e:
+            candidate_elapsed = time.time() - candidate_start_time
+            error_info = {
+                "candidate_id": candidate_id if 'candidate_id' in locals() else "unknown",
+                "index": idx,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "processing_time": candidate_elapsed
+            }
+            errors.append(error_info)
+
+            log.error(f"[{idx}/{total_candidates}] ✗ Error processing candidate {error_info['candidate_id']}: {e}")
+            log.debug(f"Error traceback:\n{error_info['traceback']}")
+
+            # Continue processing remaining candidates
+            continue
+
+    # Batch completion summary
+    batch_elapsed = time.time() - batch_start_time
+    successful_count = len(results)
+    failed_count = len(errors)
+
+    log.info("=" * 80)
+    log.info("BATCH SCORING COMPLETED")
+    log.info("=" * 80)
+    log.info(f"Timestamp: {datetime.now().isoformat()}")
+    log.info(f"Total batch time: {batch_elapsed:.2f}s")
+    log.info(f"Successfully scored: {successful_count}/{total_candidates}")
+    log.info(f"Failed: {failed_count}/{total_candidates}")
+
+    if processing_times:
+        avg_time = sum(processing_times) / len(processing_times)
+        min_time = min(processing_times)
+        max_time = max(processing_times)
+        throughput = len(processing_times) / batch_elapsed * 60  # candidates per minute
+
+        log.info(f"Performance metrics:")
+        log.info(f"  - Average processing time: {avg_time:.2f}s/candidate")
+        log.info(f"  - Min processing time: {min_time:.2f}s")
+        log.info(f"  - Max processing time: {max_time:.2f}s")
+        log.info(f"  - Throughput: {throughput:.1f} candidates/minute")
+
+    if errors:
+        log.warning(f"Errors occurred during batch processing:")
+        for err in errors[:5]:  # Show first 5 errors
+            log.warning(f"  - {err['candidate_id']}: {err['error']}")
+        if len(errors) > 5:
+            log.warning(f"  ... and {len(errors) - 5} more errors")
+
+    log.info("=" * 80)
 
     # Return as a single CanonicalScore artifact
     return [CanonicalScore(
