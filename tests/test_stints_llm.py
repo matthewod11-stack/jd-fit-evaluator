@@ -5,9 +5,9 @@ from pathlib import Path
 import sys
 
 # Use proper package imports instead of sys.path hack
-from src.parsing.models import Stint, Project
-from src.parsing.stints_llm import extract_stints_llm, _hash
-from src.parsing.stints import extract_stints, _stint_model_to_dict
+from jd_fit_evaluator.parsing.models import Stint, Project
+from jd_fit_evaluator.parsing.stints_llm import extract_stints_llm, _hash
+from jd_fit_evaluator.parsing.stints import extract_stints, _stint_model_to_dict
 
 
 def test_stint_model():
@@ -87,7 +87,7 @@ def test_extract_stints_llm_without_ollama(monkeypatch):
 def test_extract_stints_llm_with_cache():
     """Test that extract_stints_llm would use cache when available (integration test)."""
     # This is more of a unit test for the cache logic components
-    from src.parsing.stints_llm import _hash
+    from jd_fit_evaluator.parsing.stints_llm import _hash
     
     # Test that consistent input produces consistent hash
     text = "Test resume content"

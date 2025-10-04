@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-manifest_schema = importlib.import_module("src.etl.manifest_schema")
+manifest_schema = importlib.import_module("jd_fit_evaluator.etl.manifest_schema")
 module_path = Path(manifest_schema.__file__).resolve()
 repo_root = Path(__file__).resolve().parents[2]
-if not module_path.is_relative_to(repo_root / "src/etl"):
+if not module_path.is_relative_to(repo_root / "src/jd_fit_evaluator/etl"):
     raise AssertionError(f"Unexpected manifest_schema location: {module_path}")
 
 ManifestRow = manifest_schema.ManifestRow

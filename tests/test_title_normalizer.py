@@ -1,6 +1,7 @@
 import pytest
 
-from src.mapping.title_industry import normalize_title, normalize_industry
+# mapping module is still in src/mapping (not yet migrated to jd_fit_evaluator)
+from mapping.title_industry import normalize_title, normalize_industry
 
 # -----------------------------------------------------------------------------
 # Title normalization tests
@@ -41,7 +42,7 @@ def test_embedding_fallback_threshold(monkeypatch):
     If dictionary misses, embedding similarity over a curated title set should decide.
     This test assumes an internal seam like `title_industry._embedding_topk`.
     """
-    import src.mapping.title_industry as ti
+    import mapping.title_industry as ti
 
     def fake_topk(q, k=5):
         # Return a ranked list with similarity scores that simulate a close match.
@@ -58,7 +59,7 @@ def test_llm_adjudication_tie_breaker(monkeypatch):
     If embeddings produce a tie/ambiguity, call a constrained LLM adjudicator.
     This test assumes a seam like `title_industry._adjudicate_with_llm`.
     """
-    import src.mapping.title_industry as ti
+    import mapping.title_industry as ti
 
     def fake_topk(q, k=5):
         # Ambiguous top-2 to force LLM adjudication path

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pathlib
-from pydantic import BaseModel, Field, DirectoryPath, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import BaseModel, Field, DirectoryPath, field_validator, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class EmbeddingConfig(BaseModel):
     provider: str = Field(default="mock", pattern="^(openai|ollama|mock)$")
@@ -53,9 +53,14 @@ class AppConfig(BaseSettings):
         pathlib.Path(v).mkdir(parents=True, exist_ok=True)
         return v
 
-    class Config:
-        env_prefix = "JD_FIT_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="JD_FIT_",
+        case_sensitive=False,
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+        extra="ignore"  # Ignore extra fields like OPENAI_API_KEY that aren't in the model
+    )
 
 cfg = AppConfig()
 

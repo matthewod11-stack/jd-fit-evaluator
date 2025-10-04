@@ -8,7 +8,7 @@ from pathlib import Path
 
 def test_title_hints():
     """Test the updated TITLE_HINTS dictionary"""
-    from src.etl.greenhouse import TITLE_HINTS, guess_titles_norm
+    from jd_fit_evaluator.etl.greenhouse import TITLE_HINTS, guess_titles_norm
     
     print("=== Testing TITLE_HINTS Structure ===")
     print("Available categories:", list(TITLE_HINTS.keys()))
@@ -43,7 +43,7 @@ def test_title_hints():
 
 def test_normalize_title():
     """Test the normalize_title function"""
-    from src.parsing.stints import normalize_title
+    from jd_fit_evaluator.parsing.stints import normalize_title
     
     print("\n=== Testing normalize_title Function ===")
     

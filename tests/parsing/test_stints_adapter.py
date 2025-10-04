@@ -8,8 +8,8 @@ fake_docx = types.ModuleType("docx")
 fake_docx.Document = lambda *args, **kwargs: types.SimpleNamespace(paragraphs=[])
 sys.modules.setdefault("docx", fake_docx)
 
-from src.etl.greenhouse import get_stints
-from src.parsing.stints import shape_adapter
+from jd_fit_evaluator.etl.greenhouse import get_stints
+from jd_fit_evaluator.parsing.stints import shape_adapter
 
 
 def test_manifest_first():

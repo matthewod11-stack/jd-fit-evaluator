@@ -77,6 +77,18 @@ class ManifestRow(BaseModel):
         
         return v.strip()
 
+def coerce_row(raw: dict) -> ManifestRow:
+    """Coerce a raw dictionary to a ManifestRow, handling field name variations."""
+    # Handle legacy field names
+    normalized = raw.copy()
+    
+    # Map resume_path to source_path if needed
+    if "resume_path" in normalized and "source_path" not in normalized:
+        normalized["source_path"] = normalized.pop("resume_path")
+    
+    return ManifestRow(**normalized)
+
+
 class Manifest(BaseModel):
     rows: list[ManifestRow]
     

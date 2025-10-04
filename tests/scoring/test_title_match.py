@@ -1,6 +1,6 @@
 import pytest
 
-from src.scoring.features import new_title_match_score
+from jd_fit_evaluator.scoring.features import new_title_match_score
 
 
 def test_bidirectional_contains():

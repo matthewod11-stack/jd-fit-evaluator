@@ -2,7 +2,6 @@
 # PR-004: Streamlit aligns to new keys, sorts by fit desc; optional CSV export fix.
 
 import streamlit as st, json
-import sys
 from pathlib import Path
 from typing import Dict, Any
 import csv
@@ -11,7 +10,7 @@ import html
 from ui.constants import TABLE_COLUMNS, EXPORT_COLUMNS, SUB_COLUMNS
 
 # Import from installed package 
-from src.scoring.finalize import compute_fit
+from jd_fit_evaluator.scoring.finalize import compute_fit
 
 DEFAULT_MIN_SCORE = 35
 DEFAULT_PAGE_SIZE = 50

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from src.scoring.rationale import build_rationale
-from src.scoring.jd_profile import AGORIC_SENIOR_PRODUCT_DESIGNER as jd
+from jd_fit_evaluator.scoring.rationale import build_rationale
+from jd_fit_evaluator.scoring.jd_profile import AGORIC_SENIOR_PRODUCT_DESIGNER as jd
 
 
 def test_rationale_matches_snapshot():

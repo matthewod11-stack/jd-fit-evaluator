@@ -23,13 +23,10 @@ import os
 from dotenv import load_dotenv
 load_dotenv()  # This loads .env from the current directory
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
 from jd_fit_evaluator.config import cfg
 from jd_fit_evaluator.logging import init_logging
 from jd_fit_evaluator.utils.schema import CanonicalScore, write_scores
-from scoring.finalize import score_candidates, _load_role
+from jd_fit_evaluator.scoring.finalize import score_candidates, _load_role
 
 console = Console()
 app = typer.Typer(no_args_is_help=True, add_completion=False)

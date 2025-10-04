@@ -69,9 +69,7 @@ def score(
 ):
     log = logging.getLogger(__name__)
     try:
-        import sys
-        sys.path.insert(0, "src")
-        from scoring.finalize import score_candidates
+        from jd_fit_evaluator.scoring.finalize import score_candidates
 
         # Handle --sample flag
         if sample:
@@ -146,9 +144,7 @@ def parse(input_dir: str, out_dir: Path = typer.Option(cfg.out_dir, "--out","-o"
 def pipeline(input_dir: str, role: str = typer.Option(...,"--role","-r"), out_dir: Path = typer.Option(cfg.out_dir,"--out","-o"), use_llm: bool=True, explain: bool=True):
     from jd_fit_evaluator.ingest.rename import batch_rename
     from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm
-    import sys
-    sys.path.insert(0, "src")
-    from scoring.finalize import score_candidates
+    from jd_fit_evaluator.scoring.finalize import score_candidates
 
     batch_rename(input_dir)
     parsed=[]
@@ -200,9 +196,7 @@ def train(
     out: Path = typer.Option(..., "--out", help="Output path for trained model"),
 ):
     """Train a ranking model from scored candidates and labels."""
-    import sys
-    sys.path.insert(0, "src")
-    from training.train import train as train_model
+    from jd_fit_evaluator.training.train import train as train_model
     import pandas as pd
 
     log = logging.getLogger(__name__)

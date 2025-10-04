@@ -100,7 +100,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
     ]
 
 
-def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False, wrap_artifact: bool = True) -> list:
+def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False, wrap_artifact: bool = False) -> list:
     """
     Score parsed candidates against a role definition.
 
@@ -167,9 +167,8 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         )
         results.append(result)
 
-    # Optionally wrap results into the legacy CanonicalScore artifact for
-    # backwards compatibility. New callers can pass wrap_artifact=False to
-    # receive a flat list of CanonicalResult.
+    # By default, return a flat list of CanonicalResult for simpler consumers.
+    # If wrap_artifact is True, return the legacy CanonicalScore wrapper.
     if wrap_artifact:
         return [CanonicalScore(
             artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
@@ -177,6 +176,24 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         )]
 
     return results
+
+
+def get_scoring_metadata(role: str, version: str = "canonical-1") -> dict:
+    """
+    Get metadata about a scoring run.
+
+    Args:
+        role: Role title from JD
+        version: Scoring version identifier
+
+    Returns:
+        Metadata dict with version and role
+    """
+    return {
+        "version": version,
+        "role": role,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 
 def _load_role(role: str) -> dict:

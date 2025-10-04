@@ -1,9 +1,9 @@
 import pytest
 from datetime import date, timedelta
 
-from src.scoring.tenure import months_between, union_intervals
+from jd_fit_evaluator.scoring.tenure import months_between, union_intervals
 
-assert months_between.__module__ == union_intervals.__module__ == "src.scoring.tenure"
+assert months_between.__module__ == union_intervals.__module__ == "jd_fit_evaluator.scoring.tenure"
 
 # -------------------------------
 # months_between() unit tests
