@@ -5,7 +5,7 @@ import pytest
 from typer.testing import CliRunner
 
 from jd_fit_evaluator.cli import app
-from src.training.train import train
+from jd_fit_evaluator.training.train import train
 
 
 def _write_scores(tmp_path: Path) -> Path:

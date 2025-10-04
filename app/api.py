@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from src.scoring.finalize import compute_fit
+from jd_fit_evaluator.scoring.finalize import compute_fit
 
 app = FastAPI(title="JD Fit Evaluator API")
 

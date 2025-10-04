@@ -3,8 +3,8 @@ import sys
 import types
 from pathlib import Path
 
-from src.etl.greenhouse import get_stints
-from src.scoring.features import tenure_scores, recency_score
+from jd_fit_evaluator.etl.greenhouse import get_stints
+from jd_fit_evaluator.scoring.features import tenure_scores, recency_score
 
 
 def test_tenure_and_recency_computed(monkeypatch):

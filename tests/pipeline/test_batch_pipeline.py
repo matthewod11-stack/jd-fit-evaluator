@@ -67,9 +67,7 @@ def test_batch_pipeline_end_to_end():
     """
     from jd_fit_evaluator.etl.manifest_ingest import ingest_manifest_rows
     from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm
-    import sys
-    sys.path.insert(0, str(ROOT / "src"))
-    from scoring.finalize import score_candidates
+    from jd_fit_evaluator.scoring.finalize import score_candidates
     from jd_fit_evaluator.utils.schema import write_scores
 
     # 1. Verify manifest exists
@@ -95,9 +93,7 @@ def test_batch_pipeline_end_to_end():
     assert candidates_jsonl.exists(), f"Candidates JSONL not created: {candidates_jsonl}"
 
     # 3. Parse resumes from manifest paths
-    import sys
-    sys.path.insert(0, str(ROOT / "src"))
-    from parsing.resume import extract_text
+    from jd_fit_evaluator.parsing.resume import extract_text
 
     parsed_candidates = []
 
@@ -136,12 +132,10 @@ def test_batch_pipeline_end_to_end():
     except Exception as e:
         pytest.fail(f"Scoring failed: {e}")
 
-    assert len(scores) > 0, "No score artifacts returned"
+    assert len(scores) > 0, "No score results returned"
 
-    # Verify CanonicalScore structure
-    score_artifact = scores[0]
-    assert hasattr(score_artifact, "results"), "Score artifact missing 'results'"
-    results = score_artifact.results
+    # score_candidates now returns a flat list of CanonicalResult objects
+    results = scores
 
     assert len(results) == expected_count, \
         f"Expected {expected_count} scored results, got {len(results)}"

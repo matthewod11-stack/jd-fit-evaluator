@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.1.1, pluggy-1.6.0
+rootdir: /Users/mod/Desktop/jd-fit-evaluator
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.10.0, asyncio-0.23.6, cov-7.0.0
+asyncio: mode=Mode.STRICT
+collected 74 items
+
+tests/e2e/test_dry_run_harness.py .                                      [  1%]
+tests/e2e/test_mvp_flow.py ...                                           [  5%]
+tests/etl/test_ingestion_reporting.py .                                  [  6%]
+tests/etl/test_manifest_schema.py ....                                   [ 12%]
+tests/models/test_embeddings.py ...                                      [ 16%]
+tests/parsing/test_stints_adapter.py ...                                 [ 20%]
+tests/pipeline/test_batch_pipeline.py ..                                 [ 22%]
+tests/samples/test_pd_snapshot.py ..                                     [ 25%]
+tests/samples/test_sample_flow.py ...                                    [ 29%]
+tests/scoring/test_title_match.py ...                                    [ 33%]
+tests/test_cli_exit.py .                                                 [ 35%]
+tests/test_config.py .                                                   [ 36%]
+tests/test_embeddings_batch.py F                                         [ 37%]
+tests/test_embeddings_concurrent.py ..                                   [ 40%]
+tests/test_rationale_snapshot.py .                                       [ 41%]
+tests/test_schema_migrate.py .                                           [ 43%]
+tests/test_score_sample.py .                                             [ 44%]
+tests/test_scores_golden.py .                                            [ 45%]
+tests/test_scoring_features.py .                                         [ 47%]
+tests/test_smoke.py .                                                    [ 48%]
+tests/test_stints_llm.py .........                                       [ 60%]
+tests/test_tenure_merge.py ...........                                   [ 75%]
+tests/test_title_normalizer.py ...........                               [ 90%]
+tests/training/test_train_cli.py ..                                      [ 93%]
+tests/ui/test_confidence_badges.py ss                                    [ 95%]
+tests/ui/test_export_alignment.py .                                      [ 97%]
+tests/ui/test_ui_config.py ..                                            [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_mock_batch ________________________________
+
+tmp_path = PosixPath('/private/var/folders/7b/t2t1y7t54711vt7xlczlr67w0000gn/T/pytest-of-mod/pytest-199/test_mock_batch0')
+
+    def test_mock_batch(tmp_path):
+        texts = ["foo","bar"]*100
+        out = embed_texts(texts, str(tmp_path/"c.db"))
+>       assert all(len(v)==1536 for v in out)
+E       assert False
+E        +  where False = all(<generator object test_mock_batch.<locals>.<genexpr> at 0x12e74bae0>)
+
+tests/test_embeddings_batch.py:7: AssertionError
+=============================== warnings summary ===============================
+tests/pipeline/test_batch_pipeline.py:56
+  /Users/mod/Desktop/jd-fit-evaluator/tests/pipeline/test_batch_pipeline.py:56: PytestUnknownMarkWarning: Unknown pytest.mark.GOLDEN - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.GOLDEN
+
+tests/pipeline/test_batch_pipeline.py:220
+  /Users/mod/Desktop/jd-fit-evaluator/tests/pipeline/test_batch_pipeline.py:220: PytestUnknownMarkWarning: Unknown pytest.mark.GOLDEN - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.GOLDEN
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_embeddings_batch.py::test_mock_batch - assert False
+============= 1 failed, 71 passed, 2 skipped, 2 warnings in 27.47s =============

@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 
 # Use proper package imports instead of sys.path hack
-from src.scoring.finalize import compute_fit
-from src.parsing.stints import extract_stints
+from jd_fit_evaluator.scoring.finalize import compute_fit
+from jd_fit_evaluator.parsing.stints import extract_stints
 
 def load_sample_candidate() -> dict:
     p = Path("data/sample/candidate_example.json")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Dict, Any
+from datetime import datetime, timezone
 import json
 import logging
 import time
@@ -105,7 +106,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
     ]
 
 
-def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False) -> list[CanonicalScore]:
+def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False, wrap_artifact: bool = False) -> list:
     """
     Score parsed candidates against a role definition.
 
@@ -115,7 +116,7 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         explain: If True, include detailed rationale in results
 
     Returns:
-        List of CanonicalScore objects ready for write_scores()
+        List[CanonicalResult] — flat list of candidate scoring results (no artifact wrapper)
     """
     batch_start_time = time.time()
     total_candidates = len(parsed_candidates)
@@ -261,11 +262,33 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
 
     log.info("=" * 80)
 
-    # Return as a single CanonicalScore artifact
-    return [CanonicalScore(
-        artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
-        results=results
-    )]
+    # By default, return a flat list of CanonicalResult for simpler consumers.
+    # If wrap_artifact is True, return the legacy CanonicalScore wrapper.
+    if wrap_artifact:
+        return [CanonicalScore(
+            artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
+            results=results
+        )]
+
+    return results
+
+
+def get_scoring_metadata(role: str, version: str = "canonical-1") -> dict:
+    """
+    Get metadata about a scoring run.
+
+    Args:
+        role: Role title from JD
+        version: Scoring version identifier
+
+    Returns:
+        Metadata dict with version and role
+    """
+    return {
+        "version": version,
+        "role": role,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 
 def _load_role(role: str) -> dict:

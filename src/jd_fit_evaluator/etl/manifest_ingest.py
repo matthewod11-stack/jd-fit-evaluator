@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import ValidationError
 from typing import List, Dict, Any
 import logging
-from jd_fit_evaluator.etl.manifest_schema import ManifestRow, Manifest
+from .manifest_schema import ManifestRow, Manifest
 
 logger = logging.getLogger(__name__)
 

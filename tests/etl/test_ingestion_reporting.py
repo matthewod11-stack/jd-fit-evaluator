@@ -6,7 +6,7 @@ We assume an ingestion function that iterates manifest rows and collects:
 """
 import pytest
 
-from src.etl.ingestion import ingest_manifest_rows as _fake_ingest
+from jd_fit_evaluator.etl.ingestion import ingest_manifest_rows as _fake_ingest
 
 def test_ingestion_reports_skipped_rows(tmp_path):
     """PR-08: Ingestion should collect and report rows that fail validation."""
