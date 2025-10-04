@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Dict, Any
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
@@ -99,7 +100,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
     ]
 
 
-def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False) -> list[CanonicalScore]:
+def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False) -> list[CanonicalResult]:
     """
     Score parsed candidates against a role definition.
 
@@ -109,7 +110,7 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         explain: If True, include detailed rationale in results
 
     Returns:
-        List of CanonicalScore objects ready for write_scores()
+        List[CanonicalResult] — flat list of candidate scoring results (no artifact wrapper)
     """
     # Load role definition
     if isinstance(role, str):
@@ -166,11 +167,8 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
         )
         results.append(result)
 
-    # Return as a single CanonicalScore artifact
-    return [CanonicalScore(
-        artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
-        results=results
-    )]
+    # Return flat list of results (was previously wrapped in a CanonicalScore artifact)
+    return results
 
 
 def _load_role(role: str) -> dict:
