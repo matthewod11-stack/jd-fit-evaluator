@@ -66,8 +66,13 @@ def score(
     out_dir: Path = typer.Option(cfg.out_dir, "--out", "-o"),
     strict: bool = typer.Option(True, help="Fail on invalid inputs"),
     sample: bool = typer.Option(False, "--sample", help="Use sample candidate data"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
 ):
+    # Configure logging based on verbose flag
+    log_level = logging.DEBUG if verbose else logging.INFO
+    init_logging("DEBUG" if verbose else "INFO")
     log = logging.getLogger(__name__)
+
     try:
         import sys
         sys.path.insert(0, "src")
@@ -87,6 +92,7 @@ def score(
                 raise UserInputError(f"Candidates path does not exist: {candidates}")
 
         # Load parsed candidate JSONs
+        typer.echo(f"📂 Loading candidates from {candidates_path}...")
         parsed = []
         if candidates_path.is_dir():
             for f in candidates_path.glob("**/*.parsed.json"):
@@ -100,10 +106,30 @@ def score(
         if not parsed:
             raise UserInputError(f"No parsed candidates found in {candidates_path}")
 
-        # Score candidates
+        typer.echo(f"✓ Loaded {len(parsed)} candidates")
+        typer.echo(f"🎯 Scoring against role: {role}")
+        typer.echo("")
+
+        # Score candidates (with full logging enabled)
         items = score_candidates(parsed, role, explain)
+
+        typer.echo("")
+        typer.echo(f"💾 Writing results to {out_dir}...")
         write_scores(items, out_dir)
-        typer.echo(f"Scored {len(parsed)} candidates, wrote to {out_dir}")
+
+        # Summary output
+        typer.echo("")
+        typer.echo("=" * 60)
+        typer.echo("✅ BATCH SCORING COMPLETE")
+        typer.echo("=" * 60)
+        typer.echo(f"Scored: {len(parsed)} candidates")
+        typer.echo(f"Output directory: {out_dir}")
+        typer.echo(f"  - scores.jsonl")
+        typer.echo(f"  - scores.csv")
+        if explain:
+            typer.echo(f"  - rationales.md")
+        typer.echo("=" * 60)
+
     except (ValidationError, UserInputError, ConfigError, SchemaError) as e:
         log.error("Validation/config error: %s", e)
         raise typer.Exit(1)
@@ -143,24 +169,74 @@ def parse(input_dir: str, out_dir: Path = typer.Option(cfg.out_dir, "--out","-o"
     typer.echo(f"Parsed {count} resumes to {out_dir}")
 
 @app.command()
-def pipeline(input_dir: str, role: str = typer.Option(...,"--role","-r"), out_dir: Path = typer.Option(cfg.out_dir,"--out","-o"), use_llm: bool=True, explain: bool=True):
+def pipeline(
+    input_dir: str,
+    role: str = typer.Option(..., "--role", "-r"),
+    out_dir: Path = typer.Option(cfg.out_dir, "--out", "-o"),
+    use_llm: bool = True,
+    explain: bool = True,
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+):
+    # Configure logging based on verbose flag
+    init_logging("DEBUG" if verbose else "INFO")
+    log = logging.getLogger(__name__)
+
     from jd_fit_evaluator.ingest.rename import batch_rename
     from jd_fit_evaluator.parsing.llm_parser import parse_resume_with_llm
     import sys
     sys.path.insert(0, "src")
     from scoring.finalize import score_candidates
 
-    batch_rename(input_dir)
-    parsed=[]
-    for f in Path(input_dir).glob("**/*"):
-        if f.suffix.lower() not in {".pdf",".docx",".txt"}: continue
-        text=f.read_text(errors="ignore")
-        pr=parse_resume_with_llm(text).model_dump()
-        parsed.append({"path":str(f),"parsed":pr})
+    typer.echo("🚀 Starting full pipeline...")
+    typer.echo("")
 
-    results=score_candidates(parsed, role=role, explain=explain)
+    # Step 1: Rename
+    typer.echo("📝 Step 1/3: Renaming files...")
+    pairs = batch_rename(input_dir)
+    typer.echo(f"✓ Renamed {len(pairs)} files")
+    typer.echo("")
+
+    # Step 2: Parse
+    typer.echo("📄 Step 2/3: Parsing resumes...")
+    parsed = []
+    resume_files = list(Path(input_dir).glob("**/*"))
+    resume_files = [f for f in resume_files if f.suffix.lower() in {".pdf", ".docx", ".txt"}]
+
+    for idx, f in enumerate(resume_files, 1):
+        try:
+            typer.echo(f"  [{idx}/{len(resume_files)}] Parsing {f.name}...")
+            text = f.read_text(errors="ignore")
+            pr = parse_resume_with_llm(text).model_dump()
+            parsed.append({"path": str(f), "parsed": pr})
+        except Exception as e:
+            log.error(f"Failed to parse {f.name}: {e}")
+            continue
+
+    typer.echo(f"✓ Parsed {len(parsed)}/{len(resume_files)} resumes")
+    typer.echo("")
+
+    # Step 3: Score
+    typer.echo("🎯 Step 3/3: Scoring candidates...")
+    results = score_candidates(parsed, role=role, explain=explain)
+
+    typer.echo("")
+    typer.echo(f"💾 Writing results to {out_dir}...")
     write_scores(results, out_dir)
-    typer.echo(f"Pipeline complete! Renamed, parsed {len(parsed)} candidates, and wrote scores to {out_dir}")
+
+    # Summary output
+    typer.echo("")
+    typer.echo("=" * 60)
+    typer.echo("✅ PIPELINE COMPLETE")
+    typer.echo("=" * 60)
+    typer.echo(f"Renamed: {len(pairs)} files")
+    typer.echo(f"Parsed: {len(parsed)} resumes")
+    typer.echo(f"Scored: {len(parsed)} candidates")
+    typer.echo(f"Output directory: {out_dir}")
+    typer.echo(f"  - scores.jsonl")
+    typer.echo(f"  - scores.csv")
+    if explain:
+        typer.echo(f"  - rationales.md")
+    typer.echo("=" * 60)
 
 @app.command()
 def ingest_manifest(
