@@ -3,8 +3,6 @@ PR-08: This test scaffolds a 'skip-with-reason' reporting seam.
 We assume an ingestion function that iterates manifest rows and collects:
   - processed: List[ManifestRow]
   - skipped: List[{"row": <raw>, "reason": <str>}]
-
-TODO(PR-08): Wire this to your actual ingestion entrypoint or add a thin adapter.
 """
 import pytest
 

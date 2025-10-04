@@ -208,14 +208,13 @@ def test_batch_pipeline_end_to_end():
         except ValueError:
             pytest.fail(f"CSV score not numeric for {row['candidate_id']}: {score_str}")
 
-    # 9. Summary validation
-    print(f"\n✅ Pipeline test PASSED:")
-    print(f"   - Ingested {expected_count} candidates from manifest")
-    print(f"   - Parsed {len(parsed_candidates)} resumes")
-    print(f"   - Scored {len(results)} candidates")
-    print(f"   - Generated valid JSONL: {scores_jsonl}")
-    print(f"   - Generated valid CSV: {scores_csv}")
-    print(f"   - All {expected_count} candidates have numeric fit scores in [0, 100]")
+    # 9. Summary validation complete
+    # Test assertions above already validate:
+    # - Ingested expected_count candidates from manifest
+    # - Parsed len(parsed_candidates) resumes
+    # - Scored len(results) candidates
+    # - Generated valid JSONL and CSV files
+    # - All candidates have numeric fit scores in [0, 100]
 
 
 @pytest.mark.GOLDEN

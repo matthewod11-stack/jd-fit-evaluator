@@ -80,7 +80,8 @@ def _ensure_sample_outputs() -> tuple[Path, Path]:
         elif first_row and not (first_row.get("title_canonical") or first_row.get("industry_canonical")):
             needs_refresh = True
 
-    if scores and scores.exists() and rationales.exists() and not needs_refresh:
+    # Check that both files exist and rationales has content (not just empty file)
+    if scores and scores.exists() and rationales.exists() and rationales.stat().st_size > 0 and not needs_refresh:
         return scores, rationales
 
     result = _run(SAMPLE_CMD)

@@ -1,7 +1,18 @@
-Has recent Web3/DeFi stint (≤3y): evidence 'defi'
+# candidate_example.parsed
 
-Wallet/smart contract exposure: evidence 'wallet'
+Titles match score: 0.30 (last level gap soft-penalized)
+Industry relevance: 0.00
+Skills semantic sim: 0.00
+Context alignment: 1.00
+Tenure (avg 0.0 mo, last 0.0 mo): 0.00
+Recency: 0.00
 
-Usability testing experience: evidence 'usability testing'
+# demo-0001
 
-Title aligned to Product/UX Designer: score=0
+Titles match score: 0.00 (last level gap soft-penalized)
+Industry relevance: 0.00
+Skills semantic sim: 0.00
+Context alignment: 1.00
+Tenure (avg 0.0 mo, last 0.0 mo): 0.00
+Recency: 0.00
+

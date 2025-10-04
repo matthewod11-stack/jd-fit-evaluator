@@ -14,7 +14,7 @@ def test_build_confidence_badges_payload_shape():
     """
         PR-05: Once a testable seam exists, validate we get a stable, testable payload:
             - list of dicts with keys: name, confidence (0–1), label/text, maybe color/variant.
-        TODO(PR-05): Implement 'build_confidence_badges_payload' (or similar) in ui.app,
+        Implement 'build_confidence_badges_payload' (or similar) in ui.app,
         return a pure-Python structure (no Streamlit objects), then unskip this test.
     """
     app = pytest.importorskip("ui.app")
@@ -31,7 +31,7 @@ def test_render_confidence_badges_does_not_throw(monkeypatch):
     """
     PR-05: Provide a pure function that formats badges and calls Streamlit API internally.
     We only assert it doesn't raise, not visual output.
-    TODO(PR-05): introduce 'render_confidence_badges(badges)' seam, then unskip this test.
+    Introduce 'render_confidence_badges(badges)' seam, then unskip this test.
     """
     spec = importlib.util.find_spec("ui.app") # pyright: ignore[reportAttributeAccessIssue]
     if spec is None:
