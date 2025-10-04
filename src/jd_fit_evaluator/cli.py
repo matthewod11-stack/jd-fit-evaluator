@@ -1,4 +1,4 @@
-idyt5yth6from __future__ import annotations
+from __future__ import annotations
 import json, logging
 from pathlib import Path
 import typer
