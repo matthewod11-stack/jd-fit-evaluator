@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+TODO(PR12): ARCHIVED - This script is redundant and has been replaced.
+Use split_resumes_and_manifest.py for the canonical workflow.
+This file has been moved to archive/tools/ for reference only.
+"""
 import argparse, os, re, sys, glob, csv
 import pandas as pd
 
