@@ -213,3 +213,6 @@ data/raw/*
 data/ingest/*
 !data/ingest/.gitkeep
 *.pdf
+
+# Parsed candidate artifacts (do not commit)
+data/candidates/
