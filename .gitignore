@@ -216,3 +216,6 @@ data/ingest/*
 
 # Parsed candidate artifacts (do not commit)
 data/candidates/
+
+# Caches
+.cache/
