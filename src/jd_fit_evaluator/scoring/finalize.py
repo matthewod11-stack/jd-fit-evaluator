@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import json
 import logging
@@ -16,7 +16,7 @@ from .features import (
 )
 from .weights import DEFAULT_WEIGHTS
 from jd_fit_evaluator.models.embeddings import get_embedder
-from jd_fit_evaluator.utils.schema import CanonicalScore, CanonicalResult
+from jd_fit_evaluator.utils.schema import CanonicalResult
 
 log = logging.getLogger(__name__)
 
@@ -106,20 +106,25 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
     ]
 
 
-def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: bool = False, wrap_artifact: bool = False) -> list:
+def score_candidates(
+    candidates: List[Dict[str, Any]],
+    role: Dict[str, Any] | str,
+    explain: bool = False,
+    weights: Optional[Dict[str, float]] = None
+) -> List[CanonicalResult]:
     """
     Score parsed candidates against a role definition.
 
     Args:
-        parsed_candidates: List of dicts with 'path' and 'parsed' keys (or just parsed candidate dicts)
-        role: Either a role name/path string or a role dict with scoring criteria
+        candidates: List of dicts with 'path' and 'parsed' keys (or just parsed candidate dicts)
+        role_dict: Either a role name/path string or a role dict with scoring criteria
         explain: If True, include detailed rationale in results
 
     Returns:
         List[CanonicalResult] — flat list of candidate scoring results (no artifact wrapper)
     """
     batch_start_time = time.time()
-    total_candidates = len(parsed_candidates)
+    total_candidates = len(candidates)
 
     log.info("=" * 80)
     log.info("BATCH SCORING STARTED")
@@ -128,7 +133,7 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
     log.info(f"Total candidates: {total_candidates}")
     log.info(f"Explain mode: {explain}")
 
-    # Load role definition
+    # Load role definition (accept either a role dict or a path/name string)
     if isinstance(role, str):
         role_dict = _load_role(role)
         log.info(f"Role loaded from: {role}")
@@ -138,14 +143,14 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
 
     log.info(f"Role name: {role_dict.get('role', 'unknown')}")
 
-    # Extract weights from role if present
-    weights = role_dict.get("weights")
+    # Extract weights: explicit arg overrides role-level weights
+    weights = weights or role_dict.get("weights")
 
     results = []
     errors = []
     processing_times = []
 
-    for idx, item in enumerate(parsed_candidates, 1):
+    for idx, item in enumerate(candidates, 1):
         candidate_start_time = time.time()
 
         try:
@@ -262,14 +267,7 @@ def score_candidates(parsed_candidates: list[dict], role: str | dict, explain: b
 
     log.info("=" * 80)
 
-    # By default, return a flat list of CanonicalResult for simpler consumers.
-    # If wrap_artifact is True, return the legacy CanonicalScore wrapper.
-    if wrap_artifact:
-        return [CanonicalScore(
-            artifact={"version": "canonical-1", "role": role_dict.get("role", "unknown")},
-            results=results
-        )]
-
+    # By design we return a flat list of CanonicalResult for simpler consumers.
     return results
 
 

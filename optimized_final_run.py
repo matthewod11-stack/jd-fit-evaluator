@@ -16,7 +16,6 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.table import Table
 from rich.panel import Panel
-import sys
 import os
 
 # Load .env file before importing config
@@ -86,10 +85,10 @@ class OptimizedScorer:
         return candidates
     
     def score_candidate_batch(self, batch: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Score a batch of candidates. Returns a dict with success and flat results list."""
+        """Score a batch of candidates and return results."""
         try:
-            # Score the batch - score_candidates now returns a flat list of CanonicalResult
-            batch_results = score_candidates(batch, self.role_dict, self.explain, wrap_artifact=False)
+            # Score the batch - now returns flat List[CanonicalResult]
+            batch_results = score_candidates(batch, self.role_dict, self.explain)
             return [{"success": True, "results": batch_results}]
         except Exception as e:
             self.logger.error(f"Batch scoring failed: {e}")

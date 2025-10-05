@@ -1,8 +1,4 @@
-optimized_final_run.py:sys.path.insert(0, str(Path(__file__).parent / "src"))
 validate_optimization.py:        sys.path.insert(0, ".")
 validate_optimization.py:    sys.path.insert(0, ".")
-tests/pipeline/test_batch_pipeline.py:    sys.path.insert(0, str(ROOT / "src"))
-tests/pipeline/test_batch_pipeline.py:    sys.path.insert(0, str(ROOT / "src"))
-src/jd_fit_evaluator/cli.py:        sys.path.insert(0, "src")
-src/jd_fit_evaluator/cli.py:    sys.path.insert(0, "src")
-src/jd_fit_evaluator/cli.py:    sys.path.insert(0, "src")
+scripts/migrate_imports.py:    # Pattern 6: Remove sys.path.insert hacks
+scripts/migrate_imports.py:        changes.append("Removed sys.path.insert(0, 'src')")

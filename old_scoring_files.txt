@@ -1,12 +1,4 @@
-total 88
--rw-r--r--   1 mod  staff     0 Sep 30 05:02 __init__.py
-drwxr-xr-x@  9 mod  staff   288 Oct  4 08:43 __pycache__
-drwxr-xr-x  11 mod  staff   352 Oct  3 19:26 .
-drwxr-xr-x  15 mod  staff   480 Oct  3 15:50 ..
--rw-r--r--@  1 mod  staff  9835 Oct  3 14:47 features.py
--rw-r--r--@  1 mod  staff  7154 Oct  3 19:26 finalize.py
--rw-r--r--@  1 mod  staff  1724 Oct  2 08:29 jd_profile.py
--rw-r--r--@  1 mod  staff  8328 Oct  3 14:47 rationale.py
-drwxr-xr-x@  3 mod  staff    96 Oct  2 08:29 templates
--rw-r--r--@  1 mod  staff  1210 Oct  2 09:36 tenure.py
--rw-r--r--   1 mod  staff   163 Sep 30 05:02 weights.py
+total 0
+drwxr-xr-x@  4 mod  staff  128 Oct  4 20:38 __pycache__
+drwxr-xr-x@  3 mod  staff   96 Oct  4 20:44 .
+drwxr-xr-x  14 mod  staff  448 Oct  4 20:38 ..

@@ -155,8 +155,11 @@ def test_batch_pipeline_end_to_end():
     with scores_jsonl.open() as f:
         for line in f:
             line_data = json.loads(line)
-            # Extract results from the CanonicalScore artifact
-            if "results" in line_data:
+            # Direct CanonicalResult format (no wrapper)
+            if "candidate_id" in line_data:
+                json_results.append(line_data)
+            elif "results" in line_data:
+                # Legacy wrapper format (backwards compat)
                 json_results.extend(line_data["results"])
 
     assert len(json_results) == expected_count, \
