@@ -108,7 +108,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
 
 def score_candidates(
     candidates: List[Dict[str, Any]],
-    role: Dict[str, Any] | str,
+    role_dict: Dict[str, Any] | str,
     explain: bool = False,
     weights: Optional[Dict[str, float]] = None
 ) -> List[CanonicalResult]:
@@ -134,11 +134,10 @@ def score_candidates(
     log.info(f"Explain mode: {explain}")
 
     # Load role definition (accept either a role dict or a path/name string)
-    if isinstance(role, str):
-        role_dict = _load_role(role)
-        log.info(f"Role loaded from: {role}")
+    if isinstance(role_dict, str):
+        role_dict = _load_role(role_dict)
+        log.info(f"Role loaded from: {role_dict}")
     else:
-        role_dict = role
         log.info("Role provided as dictionary")
 
     log.info(f"Role name: {role_dict.get('role', 'unknown')}")
