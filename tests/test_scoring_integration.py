@@ -2,7 +2,6 @@
 import pytest
 from jd_fit_evaluator.scoring.finalize import score_candidates, get_scoring_metadata
 from jd_fit_evaluator.utils.schema import CanonicalResult
-import pytest
 
 
 @pytest.fixture

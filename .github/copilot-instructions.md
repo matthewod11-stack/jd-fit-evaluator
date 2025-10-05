@@ -1,74 +1,43 @@
-# JD-Fit Evaluator - AI Coding Agent Instructions
+## Copilot / AI Agent quick guide (concise)
 
-## Architecture Overview
+This repo implements a multi-signal candidate-to-job fit evaluator (resume parsing → feature extraction → scoring → rationales). Use this file to get productive quickly as an AI coding agent.
 
-This is a **multi-signal, JD-anchored candidate evaluation system** that scores resumes against job descriptions using weighted feature extraction and local embeddings.
+What to read first (by order):
+- `README.md` (high-level workflows & env vars)
+- `Makefile` (quick commands: `make setup`, `make ui`, `make health`, `make score`)
+- `src/` — key places:
+	- `src/jd_fit_evaluator/cli.py` (primary CLI entrypoints)
+	- `src/scoring/features.py`, `src/scoring/finalize.py`, `src/scoring/weights.py` (scoring logic)
+	- `src/models/embeddings.py` and `src/models/llm.py` (embedding/LLM providers & fallbacks)
+	- `app/api.py` (FastAPI), `ui/app.py` (Streamlit UI)
 
-**Core Data Flow:**
-1. **Ingestion**: PDFs → individual candidate files → structured JSON
-2. **Feature Extraction**: Parse resumes into signals (titles, industries, skills, tenure, context)
-3. **Scoring**: Weighted combination of features → 0-100 fit score + rationale
-4. **Interfaces**: CLI, FastAPI, Streamlit UI
+Essential workflows & commands (examples):
+- Create venv & deps: `make setup` (or `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`).
+- Run sample scoring (no data needed): `python -m jd_fit_evaluator.cli score --sample --role "Senior Product Designer"`
+- Launch UI: `make ui` or `python -m jd_fit_evaluator.cli ui` (Streamlit at :8501)
+- Start API server: `python -m uvicorn app.api:app --reload`
+- Batch optimized run: `python optimized_final_run.py run-optimized <manifest> <profile.json> --workers 8 --batch-size 32 --out out`
 
-## Key Components & Boundaries
+Tests and dev notes:
+- Run tests: `pytest` (many tests import core modules directly; `tests/test_direct.py` shows using `sys.path.insert(0, "src")` to import package code).
+- Health check: `make health` runs a lightweight optimized final-run health routine.
 
-- **`src/etl/`**: Data ingestion (Greenhouse API + file-based resume splitting)
-- **`src/parsing/`**: Resume text extraction and stint/title normalization
-- **`src/models/embeddings.py`**: Local LLaMA embeddings with deterministic fallback
-- **`src/scoring/`**: Multi-signal feature extraction + weighted scoring + rationale generation
-- **`app/api.py`**: FastAPI wrapper for programmatic access
-- **`ui/app.py`**: Streamlit reviewer interface
-- **`tools/`**: Batch processing utilities for PDF splitting and manifest creation
+Configuration & conventions:
+- Settings come from Pydantic-backed `Settings` and environment variables with prefix `JD_FIT_`. Use a `.env` for local config (see `README.md` examples).
+- Embeddings/LLM providers support `mock`, `openai`, and `ollama` with graceful fallbacks — see `src/models/embeddings.py` and `src/models/llm.py` for provider-specific behaviour.
+- Data formats:
+	- Candidate JSON: `{candidate_id, name, stints: [...], skills: [...], ...}`
+	- Scoring output: `{fit_score: float, rationale: [str], component_scores: {...}}`
 
-## Critical Workflows
+Patterns to preserve when editing code:
+- Prefer `pathlib.Path` for paths, avoid hardcoding relative paths.
+- Favor graceful degradation (mock provider) instead of hard failures for external services.
+- Scoring weights/config live in `src/scoring/weights.py` — change here for algorithm tweaks.
 
-**Setup**: Always use `make setup` or the VS Code task "Setup (venv + deps)" - this creates the venv and installs dependencies.
+Files to inspect for common tasks:
+- Parsing & ingestion: `tools/split_resumes_and_manifest.py`, `src/parsing/`.
+- Scoring internals: `src/scoring/features.py`, `src/scoring/finalize.py`.
+- Embeddings/LLM: `src/models/embeddings.py`, `src/models/llm.py`.
+- Integration: `app/api.py`, `ui/app.py`, `optimized_final_run.py` (batch orchestration).
 
-**File-based Resume Processing** (primary workflow):
-```bash
-# Split multi-resume PDF into individual files + manifest
-make split-batch INPUT=data/raw/batch-01/all_resumes.pdf BATCH=batch-01
-
-# Score candidates against JD
-make score-sample  # uses sample data
-make score         # uses data/ingest/*.json files
-```
-
-**Testing Approach**: Direct imports (`test_direct.py`) bypass CLI for unit testing core scoring logic. Always add `sys.path.insert(0, "src")` for direct module imports.
-
-## Project-Specific Patterns
-
-**Data Structures**:
-- **Candidate JSON**: `{candidate_id, name, stints: [{company, title, industry, start, end}], skills: [str], ...}`
-- **Role Definition**: Extracted from structured JD text with `Title:`, `Level:`, `Industries:`, `Must-have:`, `Nice-to-have:` markers
-- **Scoring Output**: `{fit_score: float, rationale: [str], component_scores: {...}}`
-
-**Configuration**: Uses Pydantic `Settings` with `.env` fallback. Greenhouse integration is deprecated/disabled (`ENABLE_GH=1` required).
-
-**Embeddings Strategy**: Graceful degradation - attempts local GGUF model loading, falls back to deterministic hash-based embeddings for consistent testing without GPU requirements.
-
-**Feature Engineering**: Multi-signal approach in `src/scoring/features.py`:
-- Title/level matching with soft penalties
-- Industry relevance scoring
-- Semantic skill similarity via embeddings
-- Context disambiguation (hiring vs being recruited)
-- Tenure patterns (average, last stint, consistency)
-- Recency scoring and bonus flags
-
-## Integration Points
-
-**File Processing**: `tools/split_resumes_and_manifest.py` handles PDF→individual resume conversion with candidate manifest generation.
-
-**API Contracts**: FastAPI uses Pydantic models (`Role`, `Candidate`) - maintain compatibility when modifying data structures.
-
-**Weight Configuration**: Scoring weights in `src/scoring/weights.py` are configurable per role/JD for reproducibility.
-
-**Testing**: Run `make health` to verify core dependencies. Use `pytest` for test execution, direct imports for isolated component testing.
-
-## Development Conventions
-
-- **Error Handling**: Graceful fallbacks (embeddings, model loading) rather than hard failures
-- **Path Handling**: Use `pathlib.Path` throughout, absolute paths in tools
-- **CLI Pattern**: Typer-based with `load_role_from_jd()` and `load_sample_candidate()` utilities
-- **Data Persistence**: JSON for candidates, CSV for manifests, structured text for JDs
-- **Logging**: Minimal - focus on user-facing feedback via CLI/UI rather than debug logs
+If anything here is unclear or you want more examples (tests to inspect, common bug patterns, or CR suggestions), tell me which area to expand.

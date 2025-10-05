@@ -107,9 +107,9 @@ def test_extract_stints_text_input_with_llm_disabled(monkeypatch):
     
     # Need to reload config module to pick up new env var
     import importlib
-    config = importlib.import_module("src.config")
+    config = importlib.import_module("jd_fit_evaluator.config")
     importlib.reload(config)
-    stints = importlib.import_module("src.parsing.stints")
+    stints = importlib.import_module("jd_fit_evaluator.parsing.stints")
     importlib.reload(stints)
     
     result = stints.extract_stints("Sample resume text")

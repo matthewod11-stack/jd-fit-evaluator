@@ -9,13 +9,13 @@ def test_sample_score_no_exceptions(tmp_path, monkeypatch):
     monkeypatch.setenv("JD_FIT_EMBEDDINGS__DIM", "768")
 
     importlib.invalidate_caches()
-    config = importlib.import_module("src.config")
+    config = importlib.import_module("jd_fit_evaluator.config")
     importlib.reload(config)
-    embeddings = importlib.import_module("src.models.embeddings")
+    embeddings = importlib.import_module("jd_fit_evaluator.models.embeddings")
     importlib.reload(embeddings)
-    finalize = importlib.import_module("src.scoring.finalize")
+    finalize = importlib.import_module("jd_fit_evaluator.scoring.finalize")
     importlib.reload(finalize)
-    cli = importlib.import_module("src.cli")
+    cli = importlib.import_module("jd_fit_evaluator.cli")
     importlib.reload(cli)
 
     role = cli.load_role_from_jd(Path("data/sample/jd.txt"))
