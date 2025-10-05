@@ -95,8 +95,9 @@ def validate_performance() -> Dict[str, Any]:
     
     # Check if optimized script is importable
     try:
-        sys.path.insert(0, ".")
-        import optimized_final_run
+        # Import by module name without mutating sys.path
+        import importlib
+        importlib.import_module('optimized_final_run')
         results["optimized_script_importable"] = True
     except Exception as e:
         results["optimized_script_importable"] = False
@@ -205,8 +206,8 @@ def benchmark():
     
     # Test import speed
     import_start = time.time()
-    sys.path.insert(0, ".")
-    import optimized_final_run
+    import importlib
+    importlib.import_module('optimized_final_run')
     import_time = time.time() - import_start
     
     # Test configuration loading
