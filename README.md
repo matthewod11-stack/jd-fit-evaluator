@@ -47,7 +47,7 @@ cd jd-fit-evaluator
 # 2. Create virtual environment and install dependencies
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e .
 
 # 3. Try the sample scoring (no setup needed!)
 python -m jd_fit_evaluator.cli score --sample --role "Senior Product Designer"
@@ -73,10 +73,7 @@ That's it! The sample workflow uses pre-parsed candidate data and requires no co
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install package in editable mode (optional, for development)
+# Install package with dependencies
 pip install -e .
 ```
 
@@ -547,7 +544,7 @@ pip install -e .
 rm -rf .venv
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 #### Configuration Issues
