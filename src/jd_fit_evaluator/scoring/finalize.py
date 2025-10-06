@@ -108,7 +108,7 @@ def build_rationale(features, jd_terms: list[str], resume_terms: list[str]) -> l
 
 def score_candidates(
     candidates: List[Dict[str, Any]],
-    role_dict: Dict[str, Any] | str,
+    role: Dict[str, Any] | str,
     explain: bool = False,
     weights: Optional[Dict[str, float]] = None
 ) -> List[CanonicalResult]:
@@ -117,7 +117,7 @@ def score_candidates(
 
     Args:
         candidates: List of dicts with 'path' and 'parsed' keys (or just parsed candidate dicts)
-        role_dict: Either a role name/path string or a role dict with scoring criteria
+        role: Either a role name/path string or a role dict with scoring criteria
         explain: If True, include detailed rationale in results
 
     Returns:
@@ -134,16 +134,16 @@ def score_candidates(
     log.info(f"Explain mode: {explain}")
 
     # Load role definition (accept either a role dict or a path/name string)
-    if isinstance(role_dict, str):
-        role_dict = _load_role(role_dict)
-        log.info(f"Role loaded from: {role_dict}")
+    if isinstance(role, str):
+        role = _load_role(role)
+        log.info(f"Role loaded from: {role}")
     else:
         log.info("Role provided as dictionary")
 
-    log.info(f"Role name: {role_dict.get('role', 'unknown')}")
+    log.info(f"Role name: {role.get('role', 'unknown')}")
 
     # Extract weights: explicit arg overrides role-level weights
-    weights = weights or role_dict.get("weights")
+    weights = weights or role.get("weights")
 
     results = []
     errors = []
@@ -166,7 +166,7 @@ def score_candidates(
             log.info(f"[{idx}/{total_candidates}] Processing candidate: {candidate_id}")
 
             # Compute fit score
-            fit_result = compute_fit(candidate, role_dict, weights)
+            fit_result = compute_fit(candidate, role, weights)
 
             # Build rationale if requested
             rationale = None

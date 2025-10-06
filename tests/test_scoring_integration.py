@@ -33,7 +33,7 @@ def sample_role_dict():
 
 def test_score_candidates_returns_flat_list(sample_candidates, sample_role_dict):
     """Ensure score_candidates returns List[CanonicalResult], not wrapped."""
-    results = score_candidates(sample_candidates, sample_role_dict, explain=False)
+    results = score_candidates(sample_candidates, role=sample_role_dict, explain=False)
     
     # Should be a list
     assert isinstance(results, list), "Results should be a list"
@@ -71,7 +71,7 @@ def test_batch_scoring_integration(sample_candidates, sample_role_dict):
     
     all_results = []
     for batch in batches:
-        batch_results = score_candidates(batch, sample_role_dict, explain=False)
+        batch_results = score_candidates(batch, role=sample_role_dict, explain=False)
         all_results.extend(batch_results)  # Should just work now
     
     assert len(all_results) == len(sample_candidates)

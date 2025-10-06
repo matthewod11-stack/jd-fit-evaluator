@@ -109,7 +109,7 @@ def score(
         typer.echo("")
 
         # Score candidates (with full logging enabled)
-        items = score_candidates(parsed, role, explain)
+        items = score_candidates(parsed, role=role, explain=explain)
 
         typer.echo("")
         typer.echo(f"💾 Writing results to {out_dir}...")

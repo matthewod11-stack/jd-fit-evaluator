@@ -88,7 +88,7 @@ class OptimizedScorer:
         """Score a batch of candidates and return results."""
         try:
             # Score the batch - now returns flat List[CanonicalResult]
-            batch_results = score_candidates(batch, self.role_dict, self.explain)
+            batch_results = score_candidates(batch, role=self.role_dict, explain=self.explain)
             return [{"success": True, "results": batch_results}]
         except Exception as e:
             self.logger.error(f"Batch scoring failed: {e}")
