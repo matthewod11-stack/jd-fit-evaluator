@@ -14,6 +14,8 @@
   - [Common Workflows](#common-workflows)
 - [Architecture](#architecture)
 - [API Reference](#api-reference)
+- [Documentation](#documentation)
+- [Development](#development)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Legal & Ethics](#legal--ethics)
@@ -522,6 +524,95 @@ results = score_candidates(
 # Process results
 for result in results:
     print(f"{result.name}: {result.score}")
+```
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+### Architecture & Design
+
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design principles, import rules, data flow, and module responsibilities
+- **[docs/MIGRATION.md](docs/MIGRATION.md)** - Legacy to unified architecture transformation guide with before/after examples
+- **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Development guidelines, code standards, and PR process
+
+### Configuration & Deployment
+
+- **[docs/config.md](docs/config.md)** - Detailed configuration options and provider setup
+- **[OPTIMIZED_FINAL_RUN_README.md](OPTIMIZED_FINAL_RUN_README.md)** - Batch processing and optimization guide
+
+### Project Evolution
+
+- **[docs/PRD_v1.md](docs/PRD_v1.md)** through **[docs/PRD_v1.3.md](docs/PRD_v1.3.md)** - Product requirements and evolution
+- **[OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md)** - Performance optimizations and benchmarks
+
+## Development
+
+### Development Setup
+
+```bash
+# Clone and setup development environment
+git clone https://github.com/matthewod11-stack/jd-fit-evaluator.git
+cd jd-fit-evaluator
+
+# Create virtual environment and install with dev dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Install git hooks for code quality enforcement
+bash scripts/install_hooks.sh
+
+# Verify setup
+make health
+pytest
+```
+
+### Code Quality Enforcement
+
+The project uses automated checks to maintain code quality:
+
+```bash
+# Import pattern validation (no sys.path hacks, proper package imports)
+make guardpaths
+
+# Test suite with coverage
+pytest --cov=jd_fit_evaluator
+
+# Code linting and formatting
+ruff check
+
+# Batch processing validation (170+ candidates)
+bash scripts/smoke_final_run.sh
+```
+
+### Git Hooks
+
+Pre-commit hooks automatically run before each commit:
+
+- **Import validation**: Ensures proper `jd_fit_evaluator.*` import patterns
+- **Test execution**: Runs the full test suite
+- **Linting**: Checks code style with ruff
+
+Install hooks with: `bash scripts/install_hooks.sh`
+
+### Key Development Commands
+
+```bash
+# Quick health check
+make health
+
+# Run sample scoring (no data needed)
+make score
+
+# Launch development UI
+make ui
+
+# Start API server
+make api
+
+# Run all validation checks
+make guardpaths && pytest && ruff check
 ```
 
 ## Troubleshooting
