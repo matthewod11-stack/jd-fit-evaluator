@@ -21,7 +21,6 @@ class AppConfig(BaseSettings):
     env: str = Field(default="dev")
     out_dir: DirectoryPath = Field(default_factory=lambda: pathlib.Path("out"))
     log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR)$")
-    greenhouse_deprecated: bool = True
     embeddings: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
 
@@ -74,14 +73,11 @@ EMBED_MODEL = cfg.embeddings.model
 EMBED_DIM = cfg.embeddings.dim
 EMBED_CACHE_PATH = ".cache/embeddings.db"  # Default cache path
 
-# Legacy settings wrapper for deprecated modules
+# Legacy settings wrapper
 class LegacySettings:
     def __init__(self, config: AppConfig):
         self._config = config
-        # Deprecated Greenhouse settings
-        self.gh_token = None
-        self.gh_job_id = None
-    
+
     def __getattr__(self, name):
         # Fallback to the main config
         return getattr(self._config, name)

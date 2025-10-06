@@ -18,20 +18,33 @@ def test_title_hints_logic():
             "protocol","metamask","uniswap","aave","lido","staking","dapp"
         ],
     }
-    
+
     print("=== TITLE_HINTS Structure ===")
     print("Available categories:", list(TITLE_HINTS.keys()))
     print("Product Designer keywords:", TITLE_HINTS["product_designer"])
     print("Web3 Design signals:", TITLE_HINTS["web3_design_signals"])
-    
-    return TITLE_HINTS
 
-def test_guess_titles_norm_logic(TITLE_HINTS):
+    assert "product_designer" in TITLE_HINTS
+    assert "web3_design_signals" in TITLE_HINTS
+
+def test_guess_titles_norm_logic():
     """Test the guess_titles_norm logic we implemented"""
+    TITLE_HINTS = {
+        "product_designer": [
+            "product designer","senior product designer","ux designer",
+            "senior ux designer","ui/ux designer","interaction designer",
+            "design lead","experience designer"
+        ],
+        "web3_design_signals": [
+            "defi","web3","crypto","blockchain","wallet","smart contract",
+            "protocol","metamask","uniswap","aave","lido","staking","dapp"
+        ],
+    }
+
     def guess_titles_norm(text: str) -> list[tuple[str,int]]:
         s = text.lower()
         hits = []
-        
+
         # Check for product designer signals
         if "product_designer" in TITLE_HINTS:
             for keyword in TITLE_HINTS["product_designer"]:
