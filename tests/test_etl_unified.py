@@ -10,8 +10,7 @@ import tempfile
 import csv
 import json
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Use proper package imports - no sys.path manipulation needed
 
 def test_manifest_schema_coerce_row():
     """Test coerce_row function with various inputs."""
